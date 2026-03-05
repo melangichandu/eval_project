@@ -72,10 +72,10 @@ Use the table below to track status for each prompt. Update **Status** and **Com
 | 6 | US-106 | Document Upload | ✅ Done | 2025-03-05 | File input Section 2; upload after submit; multer 5MB/MIME; ownership check; .file-upload-name in index.css; upload error surfaced. |
 | 7 | US-107 | Review Step | ✅ Done | 2025-03-05 | Read-only summary (Org + Project), eligibility, warning, Back to Edit with state; styles in index.css. |
 | 8 | US-108 | Submit When Not Fully Eligible | ✅ Done | 2025-03-05 | Backend: validate required/format only, store eligibility, never 400 for score; FE: warning only, success banner. |
-| 9 | US-201 | Reviewer Login and Dashboard | ⬜ Not Started | | |
-| 10 | US-202 | List All Applications with Eligibility Status | ⬜ Not Started | | |
-| 11 | US-203 | Application Detail with Eligibility Results (Reviewer) | ⬜ Not Started | | |
-| 12 | US-204 | Approve or Reject with Award Calculation | ⬜ Not Started | | |
+| 9 | US-201 | Reviewer Login and Dashboard | ✅ Done | 2025-03-05 | Role redirect in Login; Protected role=REVIEWER, applicant→/dashboard; Layout nav by role; ReviewerDashboard + index.css only; doc title + focus a11y. |
+| 10 | US-202 | List All Applications with Eligibility Status | ✅ Done | 2025-03-05 | GET /all REVIEWER-only; listAll ORDER BY submitted_at ASC NULLS LAST; table columns + eligibility badge + StatusBadge + Review link; empty/loading/error + retry; 403 message; index.css only. |
+| 11 | US-203 | Application Detail with Eligibility Results (Reviewer) | ✅ Done | 2025-03-05 | GET :id/documents/:docId; stored eligibilityDetails; org/project sections; doc View/Download via getDocumentBlob; Back to Dashboard; index.css only; modals + .application-detail-section, .document-list. |
+| 12 | US-204 | Approve or Reject with Award Calculation | ✅ Done | 2025-03-05 | awardCalculator 5 factors; POST /award preview; PATCH status APPROVED stores award; REJECTED requires comments; focus trap + Escape; .modal-overlay; index.css only. |
 | 13 | US-205 | Summary Counts by Status on Reviewer Dashboard | ⬜ Not Started | | |
 | 14 | US-206 | Filter Applications by Eligibility and Status | ⬜ Not Started | | |
 | 15 | US-109 | View Award Amount (Applicant) | ⬜ Not Started | | |
@@ -107,4 +107,4 @@ Use the table below to track status for each prompt. Update **Status** and **Com
 
 ---
 
-*Last updated: 2025-03-05 (US-108 completed).*
+*Last updated: 2025-03-05 (US-204 completed).*

@@ -14,7 +14,7 @@ import { getStoredUser, isAuthenticated } from './services/api';
 function Protected({ children, role }) {
   const user = getStoredUser();
   if (!isAuthenticated() || !user) return <Navigate to="/login" replace />;
-  if (role && user.role !== role) return <Navigate to={user.role === 'REVIEWER' ? '/reviewer' : '/'} replace />;
+  if (role && user.role !== role) return <Navigate to={user.role === 'REVIEWER' ? '/reviewer' : '/dashboard'} replace />;
   return children;
 }
 

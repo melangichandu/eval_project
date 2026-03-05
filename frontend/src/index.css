@@ -61,6 +61,58 @@ input, select, textarea {
   flex-direction: column;
 }
 
+/* Layout: header and nav – all styles here, no inline (US-201) */
+.app-header {
+  background: var(--primary);
+  color: white;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.app-header-brand {
+  color: white;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 1.25rem;
+}
+
+.app-header-brand:hover {
+  text-decoration: underline;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.nav-user-name {
+  font-size: 0.9rem;
+}
+
+.btn-nav {
+  padding: 8px 16px;
+}
+
+.btn-header-secondary {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.btn-header-secondary:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.btn-header-login {
+  background: white;
+  color: var(--primary);
+  padding: 8px 16px;
+}
+
 .main-content {
   flex: 1;
   max-width: 1200px;
@@ -549,4 +601,277 @@ input, select, textarea {
   margin: 0;
   color: var(--success);
   font-weight: 600;
+}
+
+/* Reviewer dashboard (US-201): all styles here, no inline */
+.reviewer-dashboard-heading {
+  margin-top: 0;
+}
+
+.reviewer-dashboard-description {
+  color: var(--neutral);
+  margin-bottom: 24px;
+}
+
+.reviewer-stats-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.reviewer-stat-card {
+  min-width: 140px;
+}
+
+.reviewer-stat-label {
+  font-size: 0.875rem;
+  color: var(--neutral);
+}
+
+.reviewer-stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.reviewer-filters-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.reviewer-filters-row label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.reviewer-dashboard-error-wrap {
+  margin-bottom: 16px;
+}
+
+.reviewer-dashboard-error-wrap .reviewer-dashboard-error {
+  margin-bottom: 8px;
+}
+
+.reviewer-dashboard-error-wrap .btn {
+  margin-top: 4px;
+}
+
+.reviewer-dashboard-error {
+  color: var(--danger);
+  margin-bottom: 16px;
+}
+
+.reviewer-dashboard-loading {
+  color: var(--neutral);
+  padding: 24px 0;
+}
+
+.reviewer-empty-message {
+  color: var(--neutral);
+  margin-bottom: 24px;
+}
+
+.reviewer-table-wrap {
+  overflow-x: auto;
+}
+
+.reviewer-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.reviewer-table thead {
+  border-bottom: 2px solid #eee;
+  text-align: left;
+}
+
+.reviewer-table th {
+  padding: 12px;
+}
+
+.reviewer-table tbody tr {
+  border-bottom: 1px solid #eee;
+}
+
+.reviewer-table td {
+  padding: 12px;
+}
+
+/* Reviewer application detail (US-203): sections, documents, modals – all in index.css */
+.application-detail-section {
+  margin-bottom: 24px;
+}
+
+.application-detail-section:last-of-type {
+  margin-bottom: 0;
+}
+
+.reviewer-detail-back-wrap {
+  margin-bottom: 16px;
+}
+
+.reviewer-detail-heading {
+  margin-top: 0;
+  margin-bottom: 8px;
+}
+
+.reviewer-detail-meta {
+  margin-bottom: 24px;
+  color: var(--neutral);
+}
+
+.reviewer-detail-loading {
+  color: var(--neutral);
+  padding: 24px 0;
+}
+
+.reviewer-detail-error-wrap {
+  margin-bottom: 24px;
+}
+
+.reviewer-detail-error {
+  color: var(--danger);
+  margin-bottom: 8px;
+}
+
+.reviewer-detail-error-wrap .btn {
+  margin-top: 8px;
+}
+
+.reviewer-detail-section-heading {
+  margin-top: 0;
+  margin-bottom: 16px;
+  font-size: 1.125rem;
+}
+
+.reviewer-detail-dl {
+  margin: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 24px;
+  align-items: baseline;
+}
+
+.reviewer-detail-dl dt {
+  font-weight: 600;
+  color: #060808;
+}
+
+.reviewer-detail-dl dd {
+  margin: 0;
+  color: #060808;
+}
+
+.document-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.document-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.document-item:last-child {
+  border-bottom: 0;
+}
+
+.document-item-name {
+  font-weight: 500;
+}
+
+.document-item-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-document-action {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.document-empty {
+  color: var(--neutral);
+  margin: 0;
+}
+
+.reviewer-detail-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: white;
+}
+
+.btn-danger:hover {
+  background: #7a2828;
+}
+
+/* Modal (reviewer approve/reject – US-204) */
+.modal-backdrop,
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  max-width: 90%;
+}
+
+.modal-content--narrow {
+  max-width: 480px;
+  width: 100%;
+}
+
+.modal-heading {
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+.modal-table {
+  width: 100%;
+  margin-bottom: 16px;
+  border-collapse: collapse;
+}
+
+.modal-table td {
+  padding: 6px 8px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.modal-textarea {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 16px;
+  min-height: 100px;
+  border: 1px solid #ccc;
+  border-radius: var(--radius);
+  font-family: inherit;
+  font-size: 1rem;
 }

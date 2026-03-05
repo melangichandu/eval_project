@@ -52,7 +52,12 @@ export async function getAllApplications(params = {}) {
   const q = new URLSearchParams(params).toString();
   const res = await fetch(`${API_BASE}/api/applications/all${q ? `?${q}` : ''}`, { headers: headers() });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error || 'Failed to load applications');
+  if (!res.ok) {
+    const message = res.status === 403
+      ? 'You don\'t have permission to view all applications.'
+      : (data.error || 'Failed to load applications');
+    throw new Error(message);
+  }
   return data;
 }
 
@@ -61,6 +66,16 @@ export async function getApplication(id) {
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error || 'Failed to load application');
   return data;
+}
+
+export async function getDocumentBlob(applicationId, docId, { download = false } = {}) {
+  const url = `${API_BASE}/api/applications/${applicationId}/documents/${docId}${download ? '?download=1' : ''}`;
+  const res = await fetch(url, { headers: headers() });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || 'Failed to load document');
+  }
+  return res.blob();
 }
 
 export async function submitApplication(body) {

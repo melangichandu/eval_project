@@ -2,6 +2,7 @@ const { pool } = require('../config/db');
 const eligibilityEngine = require('../services/eligibilityEngine');
 const awardCalculator = require('../services/awardCalculator');
 const path = require('path');
+const fs = require('fs');
 
 const EIN_REGEX = /^\d{2}-\d{7}$/;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -118,7 +119,7 @@ function mapRow(row) {
     previouslyReceivedGrant: row.previously_received_grant,
     eligibilityScore: row.eligibility_score,
     eligibilityTotal: row.eligibility_total,
-    eligibilityDetails: row.eligibility_details,
+    eligibilityDetails: typeof row.eligibility_details === 'string' ? (() => { try { return JSON.parse(row.eligibility_details); } catch { return row.eligibility_details; } })() : row.eligibility_details,
     awardAmount: row.award_amount != null ? Number(row.award_amount) : null,
     awardBreakdown: row.award_breakdown,
     status: row.status,
@@ -172,7 +173,7 @@ async function listAll(req, res, next) {
       params.push(status);
       i++;
     }
-    sql += ' ORDER BY a.submitted_at ASC';
+    sql += ' ORDER BY a.submitted_at ASC NULLS LAST';
     const r = await pool.query(sql, params);
     const list = r.rows.map((row) => ({
       ...mapRow(row),
@@ -344,6 +345,36 @@ async function calculateAward(req, res, next) {
   }
 }
 
+async function getDocument(req, res, next) {
+  try {
+    const { id, docId } = req.params;
+    const download = req.query.download === '1' || req.query.download === 'true';
+    const appRow = await pool.query('SELECT id, applicant_id FROM applications WHERE id = $1', [id]);
+    if (appRow.rows.length === 0) return res.status(404).json({ error: 'Application not found' });
+    const app = appRow.rows[0];
+    const isReviewer = req.user.role === 'REVIEWER';
+    const isOwner = app.applicant_id === req.user.id;
+    if (!isReviewer && !isOwner) return res.status(403).json({ error: 'Access denied' });
+
+    const docRow = await pool.query(
+      'SELECT id, file_name, file_type, storage_path FROM documents WHERE id = $1 AND application_id = $2',
+      [docId, id]
+    );
+    if (docRow.rows.length === 0) return res.status(404).json({ error: 'Document not found' });
+    const doc = docRow.rows[0];
+    const fullPath = path.join(process.cwd(), doc.storage_path);
+    if (!fs.existsSync(fullPath)) return res.status(404).json({ error: 'File not found' });
+
+    const disposition = download ? 'attachment' : 'inline';
+    const filename = doc.file_name || 'document';
+    res.setHeader('Content-Disposition', `${disposition}; filename="${filename.replace(/"/g, '\\"')}"`);
+    if (doc.file_type) res.setHeader('Content-Type', doc.file_type);
+    res.sendFile(fullPath);
+  } catch (err) {
+    next(err);
+  }
+}
+
 module.exports = {
   listMine,
   listAll,
@@ -352,4 +383,5 @@ module.exports = {
   uploadDocument,
   updateStatus,
   calculateAward,
+  getDocument,
 };
