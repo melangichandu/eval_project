@@ -76,11 +76,11 @@ Use the table below to track status for each prompt. Update **Status** and **Com
 | 10 | US-202 | List All Applications with Eligibility Status | ✅ Done | 2025-03-05 | GET /all REVIEWER-only; listAll ORDER BY submitted_at ASC NULLS LAST; table columns + eligibility badge + StatusBadge + Review link; empty/loading/error + retry; 403 message; index.css only. |
 | 11 | US-203 | Application Detail with Eligibility Results (Reviewer) | ✅ Done | 2025-03-05 | GET :id/documents/:docId; stored eligibilityDetails; org/project sections; doc View/Download via getDocumentBlob; Back to Dashboard; index.css only; modals + .application-detail-section, .document-list. |
 | 12 | US-204 | Approve or Reject with Award Calculation | ✅ Done | 2025-03-05 | awardCalculator 5 factors; POST /award preview; PATCH status APPROVED stores award; REJECTED requires comments; focus trap + Escape; .modal-overlay; index.css only. |
-| 13 | US-205 | Summary Counts by Status on Reviewer Dashboard | ⬜ Not Started | | |
-| 14 | US-206 | Filter Applications by Eligibility and Status | ⬜ Not Started | | |
-| 15 | US-109 | View Award Amount (Applicant) | ⬜ Not Started | | |
-| 16 | US-110 | View Rejection Comments (Applicant) | ⬜ Not Started | | |
-| 17 | US-301 | Administrator Summary Report | ⬜ Not Started | | |
+| 13 | US-205 | Summary Counts by Status on Reviewer Dashboard | ✅ Done | 2025-03-05 | GET /api/applications/summary (REVIEWER); summary block with .summary-counts, .summary-item; counts + totalAwarded from server; index.css only. |
+| 14 | US-206 | Filter Applications by Eligibility and Status | ✅ Done | 2025-03-05 | GET /all query params eligibility + status; WHERE eligible/not_eligible + status; .filters-row, .filter-group, .filter-select; label for/id a11y; index.css only. |
+| 15 | US-109 | View Award Amount (Applicant) | ✅ Done | 2025-03-05 | Dashboard award column + detail award section; formatCurrency USD; .award-amount, .application-detail-award; API-only; index.css only. |
+| 16 | US-110 | View Rejection Comments (Applicant) | ✅ Done | 2025-03-05 | REJECTED shows Reviewer feedback section; fallback when empty; plain text only; .reviewer-comments, .reviewer-comments-body; index.css only. |
+| 17 | US-301 | Administrator Summary Report | ✅ Done | 2025-03-05 | GET /api/admin/summary (ADMIN); /admin route + AdminSummary; counts + total awarded; .admin-summary, .total-awarded-block; nav Admin link; seedAdmin.js. |
 
 **Status legend**
 
@@ -107,4 +107,4 @@ Use the table below to track status for each prompt. Update **Status** and **Com
 
 ---
 
-*Last updated: 2025-03-05 (US-204 completed).*
+*Last updated: 2025-03-05 (US-301 completed).*

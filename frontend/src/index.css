@@ -339,6 +339,12 @@ input, select, textarea {
   padding: 12px;
 }
 
+/* US-109: Award amount display (applicant dashboard and detail) */
+.award-amount {
+  font-weight: 700;
+  font-size: 1.125rem;
+}
+
 .empty-state {
   text-align: center;
   padding: 48px 24px;
@@ -634,6 +640,70 @@ input, select, textarea {
   font-weight: 700;
 }
 
+/* US-205: Summary counts by status – server-driven, global for reviewer */
+.summary-counts {
+  margin-bottom: 24px;
+}
+
+.summary-counts-inner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.summary-item {
+  min-width: 140px;
+}
+
+.summary-item-label {
+  display: block;
+  font-size: 0.875rem;
+  color: var(--neutral);
+}
+
+.summary-item-value {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+/* US-301: Admin summary – reuse summary-counts/summary-item; total awarded block */
+.admin-summary {
+  max-width: 900px;
+}
+
+.admin-summary-heading {
+  margin-top: 0;
+  margin-bottom: 8px;
+}
+
+.admin-summary-note {
+  color: var(--neutral);
+  margin-bottom: 24px;
+  font-size: 0.9375rem;
+}
+
+.admin-summary-back {
+  margin-top: 32px;
+  margin-bottom: 0;
+}
+
+.total-awarded-block {
+  margin-bottom: 24px;
+}
+
+.total-awarded-heading {
+  margin-top: 0;
+  margin-bottom: 8px;
+  font-size: 1.25rem;
+}
+
+.total-awarded-value {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
 .reviewer-filters-row {
   display: flex;
   gap: 16px;
@@ -645,6 +715,36 @@ input, select, textarea {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+}
+
+/* US-206: Filter applications by eligibility and status */
+.filters-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.filter-group {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.filter-group label {
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.filter-select {
+  font-family: inherit;
+  font-size: 1rem;
+  padding: 8px 12px;
+  min-width: 160px;
+  border: 1px solid #ccc;
+  border-radius: var(--radius);
+  background: var(--card);
 }
 
 .reviewer-dashboard-error-wrap {
@@ -707,6 +807,56 @@ input, select, textarea {
 
 .application-detail-section:last-of-type {
   margin-bottom: 0;
+}
+
+.application-detail-error {
+  color: var(--danger);
+}
+
+.application-detail-award {
+  margin-bottom: 24px;
+}
+
+.application-detail-award-heading {
+  margin-top: 0;
+  margin-bottom: 8px;
+  font-size: 1.25rem;
+}
+
+.application-detail-award .award-amount {
+  margin: 0 0 8px;
+}
+
+.application-detail-award-note {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--neutral);
+}
+
+.application-detail-rejection-card {
+  background: #FFEBEE;
+}
+
+/* US-110: Reviewer feedback when rejected – token-based, safe text rendering */
+.reviewer-comments {
+  border-left: 4px solid var(--danger);
+  margin-bottom: 24px;
+}
+
+.reviewer-comments h3 {
+  margin-top: 0;
+  margin-bottom: 8px;
+}
+
+.reviewer-comments-body {
+  margin: 0;
+  color: #060808;
+  line-height: 1.5;
+  white-space: pre-line;
+}
+
+.application-detail-award-breakdown-card {
+  background: #E8F5E9;
 }
 
 .reviewer-detail-back-wrap {

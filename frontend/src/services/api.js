@@ -61,6 +61,30 @@ export async function getAllApplications(params = {}) {
   return data;
 }
 
+export async function getApplicationsSummary() {
+  const res = await fetch(`${API_BASE}/api/applications/summary`, { headers: headers() });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const message = res.status === 403
+      ? 'You don\'t have permission to view the summary.'
+      : (data.error || 'Failed to load summary');
+    throw new Error(message);
+  }
+  return data;
+}
+
+export async function getAdminSummary() {
+  const res = await fetch(`${API_BASE}/api/admin/summary`, { headers: headers() });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const message = res.status === 403
+      ? 'Access denied. Administrator access required.'
+      : (data.error || 'Failed to load admin summary');
+    throw new Error(message);
+  }
+  return data;
+}
+
 export async function getApplication(id) {
   const res = await fetch(`${API_BASE}/api/applications/${id}`, { headers: headers() });
   const data = await res.json().catch(() => ({}));

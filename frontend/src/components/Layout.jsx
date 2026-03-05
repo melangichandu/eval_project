@@ -21,6 +21,9 @@ export default function Layout() {
               {user.role === 'REVIEWER' && (
                 <Link to="/reviewer" className="btn btn-secondary btn-nav">Reviewer Dashboard</Link>
               )}
+              {user.role === 'ADMIN' && (
+                <Link to="/admin" className="btn btn-secondary btn-nav">Admin</Link>
+              )}
               <button
                 type="button"
                 className="btn btn-header-secondary btn-nav"

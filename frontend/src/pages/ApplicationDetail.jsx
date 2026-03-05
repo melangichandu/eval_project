@@ -4,6 +4,9 @@ import { getApplication } from '../services/api';
 import StatusBadge from '../components/StatusBadge';
 import EligibilityPanel from '../components/EligibilityPanel';
 
+const formatCurrency = (amount) =>
+  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(amount);
+
 export default function ApplicationDetail() {
   const { id } = useParams();
   const location = useLocation();
@@ -20,7 +23,7 @@ export default function ApplicationDetail() {
   }, [id]);
 
   if (loading) return <p>Loading…</p>;
-  if (error) return <p style={{ color: 'var(--danger)' }}>{error}</p>;
+  if (error) return <p className="application-detail-error" role="alert">{error}</p>;
   if (!app) return null;
 
   const eligibilityData = {
@@ -41,7 +44,18 @@ export default function ApplicationDetail() {
         </div>
       )}
       <h1>{app.projectTitle}</h1>
-      <p><StatusBadge status={app.status} /> {app.awardAmount != null && `Award: $${Number(app.awardAmount).toLocaleString()}`}</p>
+      <p><StatusBadge status={app.status} /></p>
+      {app.status === 'APPROVED' && app.awardAmount != null && (
+        <section className="card application-detail-award" aria-labelledby="award-heading">
+          <h2 id="award-heading" className="application-detail-award-heading">Award Amount</h2>
+          <p className="award-amount" aria-label={`Award amount: ${formatCurrency(app.awardAmount)}`}>
+            {formatCurrency(app.awardAmount)}
+          </p>
+          <p className="application-detail-award-note">
+            The amount was calculated based on the program&apos;s criteria.
+          </p>
+        </section>
+      )}
       <EligibilityPanel formData={eligibilityData} />
       <div className="card">
         <h3>Organization</h3>
@@ -70,17 +84,21 @@ export default function ApplicationDetail() {
           <ul>{app.documents.map((d) => <li key={d.id}>{d.fileName}</li>)}</ul>
         </div>
       )}
-      {app.status === 'REJECTED' && app.reviewerComments && (
-        <div className="card" style={{ background: '#FFEBEE' }}>
-          <h3>Reviewer Comments</h3>
-          <p>{app.reviewerComments}</p>
-        </div>
+      {app.status === 'REJECTED' && (
+        <section className="card application-detail-rejection-card reviewer-comments" aria-labelledby="reviewer-feedback-heading">
+          <h3 id="reviewer-feedback-heading">Reviewer feedback</h3>
+          <p className="reviewer-comments-body">
+            {app.reviewerComments && app.reviewerComments.trim() !== ''
+              ? app.reviewerComments
+              : 'No additional feedback provided'}
+          </p>
+        </section>
       )}
       {app.status === 'APPROVED' && app.awardBreakdown && (
-        <div className="card" style={{ background: '#E8F5E9' }}>
+        <div className="card application-detail-award-breakdown-card">
           <h3>Award Breakdown</h3>
           <p><strong>Total Score:</strong> {app.awardBreakdown.totalScore} / {app.awardBreakdown.maxScore}</p>
-          <p><strong>Award Amount:</strong> ${Number(app.awardAmount).toLocaleString()}</p>
+          <p><strong>Award Amount:</strong> <span className="award-amount">{formatCurrency(app.awardAmount)}</span></p>
         </div>
       )}
     </>

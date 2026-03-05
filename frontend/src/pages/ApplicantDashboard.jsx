@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import { getStoredUser, getMyApplications } from '../services/api';
 import StatusBadge from '../components/StatusBadge';
 
+const formatCurrency = (amount) =>
+  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(amount);
+
 export default function ApplicantDashboard() {
   const user = getStoredUser();
   const [list, setList] = useState([]);
@@ -89,7 +92,15 @@ export default function ApplicantDashboard() {
                   <td>
                     <StatusBadge status={app.status} />
                   </td>
-                  <td>{app.awardAmount != null ? `$${Number(app.awardAmount).toLocaleString()}` : '—'}</td>
+                  <td>
+                    {app.awardAmount != null ? (
+                      <span className="award-amount" aria-label={`Award amount: ${formatCurrency(app.awardAmount)}`}>
+                        {formatCurrency(app.awardAmount)}
+                      </span>
+                    ) : (
+                      '—'
+                    )}
+                  </td>
                   <td>
                     <Link to={`/application/${app.id}`}>View application</Link>
                   </td>

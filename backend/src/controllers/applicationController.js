@@ -150,6 +150,37 @@ async function listMine(req, res, next) {
   }
 }
 
+async function getSummary(req, res, next) {
+  try {
+    const r = await pool.query(
+      `SELECT status, COUNT(*)::int AS cnt,
+              COALESCE(SUM(CASE WHEN status = 'APPROVED' THEN award_amount ELSE 0 END), 0)::numeric AS awarded
+       FROM applications GROUP BY status`
+    );
+    const summary = {
+      submitted: 0,
+      underReview: 0,
+      approved: 0,
+      rejected: 0,
+      totalAwarded: 0,
+    };
+    for (const row of r.rows) {
+      const count = row.cnt;
+      const key = row.status === 'SUBMITTED' ? 'submitted'
+        : row.status === 'UNDER_REVIEW' ? 'underReview'
+        : row.status === 'APPROVED' ? 'approved'
+        : row.status === 'REJECTED' ? 'rejected' : null;
+      if (key) summary[key] = count;
+      if (row.status === 'APPROVED') summary.totalAwarded = Number(row.awarded) || 0;
+    }
+    res.json(summary);
+  } catch (err) {
+    next(err);
+  }
+}
+
+const ALLOWED_STATUSES = ['SUBMITTED', 'UNDER_REVIEW', 'APPROVED', 'REJECTED'];
+
 async function listAll(req, res, next) {
   try {
     const { eligibility, status } = req.query;
@@ -161,14 +192,12 @@ async function listAll(req, res, next) {
     `;
     const params = [];
     let i = 1;
-    if (eligibility && eligibility !== 'all') {
-      if (eligibility === 'eligible') {
-        sql += ` AND a.eligibility_score = a.eligibility_total`;
-      } else {
-        sql += ` AND a.eligibility_score < a.eligibility_total`;
-      }
+    if (eligibility === 'eligible') {
+      sql += ` AND a.eligibility_score IS NOT NULL AND a.eligibility_score = a.eligibility_total`;
+    } else if (eligibility === 'not_eligible') {
+      sql += ` AND (a.eligibility_score IS NULL OR a.eligibility_score < a.eligibility_total)`;
     }
-    if (status && status !== 'all') {
+    if (status && ALLOWED_STATUSES.includes(status)) {
       sql += ` AND a.status = $${i}`;
       params.push(status);
       i++;
@@ -378,6 +407,7 @@ async function getDocument(req, res, next) {
 module.exports = {
   listMine,
   listAll,
+  getSummary,
   getOne,
   create,
   uploadDocument,

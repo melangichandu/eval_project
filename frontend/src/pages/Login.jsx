@@ -17,7 +17,8 @@ export default function Login() {
       const data = await login(email, password);
       setAuth(data.token, data.user);
       setPassword('');
-      navigate(data.user.role === 'REVIEWER' ? '/reviewer' : '/dashboard');
+      const to = data.user.role === 'ADMIN' ? '/admin' : data.user.role === 'REVIEWER' ? '/reviewer' : '/dashboard';
+      navigate(to);
     } catch (err) {
       setError(err.message || 'Invalid email or password');
       setPassword('');

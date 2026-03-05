@@ -1,13 +1,19 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { getAllApplications } from '../services/api';
+import { getAllApplications, getApplicationsSummary } from '../services/api';
 import StatusBadge from '../components/StatusBadge';
+
+const currencyFormat = new Intl.NumberFormat('en-US', { style: 'currency', maximumFractionDigits: 0 });
+const numberFormat = new Intl.NumberFormat('en-US');
 
 export default function ReviewerDashboard() {
   const headingRef = useRef(null);
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [summary, setSummary] = useState(null);
+  const [summaryLoading, setSummaryLoading] = useState(true);
+  const [summaryError, setSummaryError] = useState('');
   const [filterEligibility, setFilterEligibility] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
 
@@ -15,6 +21,19 @@ export default function ReviewerDashboard() {
     document.title = 'Reviewer Dashboard | Maplewood County';
     headingRef.current?.focus?.();
   }, []);
+
+  const fetchSummary = useCallback(() => {
+    setSummaryError('');
+    setSummaryLoading(true);
+    getApplicationsSummary()
+      .then(setSummary)
+      .catch((e) => setSummaryError(e.message))
+      .finally(() => setSummaryLoading(false));
+  }, []);
+
+  useEffect(() => {
+    fetchSummary();
+  }, [fetchSummary]);
 
   const fetchList = useCallback(() => {
     setError('');
@@ -32,12 +51,6 @@ export default function ReviewerDashboard() {
     fetchList();
   }, [fetchList]);
 
-  const submitted = list.filter((a) => a.status === 'SUBMITTED').length;
-  const underReview = list.filter((a) => a.status === 'UNDER_REVIEW').length;
-  const approved = list.filter((a) => a.status === 'APPROVED');
-  const totalAwarded = approved.reduce((sum, a) => sum + (Number(a.awardAmount) || 0), 0);
-  const rejected = list.filter((a) => a.status === 'REJECTED').length;
-
   return (
     <>
       <h1 className="reviewer-dashboard-heading" ref={headingRef} tabIndex={-1}>
@@ -46,43 +59,76 @@ export default function ReviewerDashboard() {
       <p className="reviewer-dashboard-description">
         View and manage all submitted applications. Filter by eligibility and status, then open an application to review and approve or reject.
       </p>
-      <div className="reviewer-stats-row">
-        <div className="card reviewer-stat-card">
-          <div className="reviewer-stat-label">Submitted</div>
-          <div className="reviewer-stat-value">{submitted}</div>
-        </div>
-        <div className="card reviewer-stat-card">
-          <div className="reviewer-stat-label">Under Review</div>
-          <div className="reviewer-stat-value">{underReview}</div>
-        </div>
-        <div className="card reviewer-stat-card">
-          <div className="reviewer-stat-label">Approved</div>
-          <div className="reviewer-stat-value">${totalAwarded.toLocaleString()}</div>
-        </div>
-        <div className="card reviewer-stat-card">
-          <div className="reviewer-stat-label">Rejected</div>
-          <div className="reviewer-stat-value">{rejected}</div>
-        </div>
-      </div>
-      <div className="reviewer-filters-row">
-        <label>
-          Eligibility:{' '}
-          <select value={filterEligibility} onChange={(e) => setFilterEligibility(e.target.value)} aria-label="Filter by eligibility">
+      <section className="summary-counts" aria-label="Application summary">
+        {summaryError && (
+          <div className="reviewer-dashboard-error-wrap">
+            <p className="reviewer-dashboard-error" role="alert">{summaryError}</p>
+            <button type="button" className="btn btn-primary" onClick={fetchSummary}>
+              Try again
+            </button>
+          </div>
+        )}
+        {summaryLoading && !summary && <p className="reviewer-dashboard-loading">Loading summary…</p>}
+        {!summaryLoading && summary && (
+          <div className="summary-counts-inner">
+            <div className="card summary-item">
+              <span className="summary-item-label">Submitted</span>
+              <span className="summary-item-value" aria-label={`Submitted: ${numberFormat.format(summary.submitted)} applications`}>
+                {numberFormat.format(summary.submitted)}
+              </span>
+            </div>
+            <div className="card summary-item">
+              <span className="summary-item-label">Under Review</span>
+              <span className="summary-item-value" aria-label={`Under Review: ${numberFormat.format(summary.underReview)} applications`}>
+                {numberFormat.format(summary.underReview)}
+              </span>
+            </div>
+            <div className="card summary-item">
+              <span className="summary-item-label">Approved</span>
+              <span className="summary-item-value" aria-label={`Approved: ${numberFormat.format(summary.approved)} applications, ${currencyFormat.format(summary.totalAwarded)} total awarded`}>
+                {numberFormat.format(summary.approved)} Approved ({currencyFormat.format(summary.totalAwarded)} total)
+              </span>
+            </div>
+            <div className="card summary-item">
+              <span className="summary-item-label">Rejected</span>
+              <span className="summary-item-value" aria-label={`Rejected: ${numberFormat.format(summary.rejected)} applications`}>
+                {numberFormat.format(summary.rejected)}
+              </span>
+            </div>
+          </div>
+        )}
+      </section>
+      <div className="filters-row" role="group" aria-label="Filter applications">
+        <div className="filter-group">
+          <label htmlFor="filter-eligibility">Eligibility</label>
+          <select
+            id="filter-eligibility"
+            className="filter-select"
+            value={filterEligibility}
+            onChange={(e) => setFilterEligibility(e.target.value)}
+            aria-label="Filter by eligibility"
+          >
             <option value="all">All</option>
             <option value="eligible">Eligible</option>
             <option value="not_eligible">Not Eligible</option>
           </select>
-        </label>
-        <label>
-          Status:{' '}
-          <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} aria-label="Filter by status">
+        </div>
+        <div className="filter-group">
+          <label htmlFor="filter-status">Status</label>
+          <select
+            id="filter-status"
+            className="filter-select"
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            aria-label="Filter by status"
+          >
             <option value="all">All</option>
             <option value="SUBMITTED">Submitted</option>
             <option value="UNDER_REVIEW">Under Review</option>
             <option value="APPROVED">Approved</option>
             <option value="REJECTED">Rejected</option>
           </select>
-        </label>
+        </div>
       </div>
       {error && (
         <div className="reviewer-dashboard-error-wrap">
