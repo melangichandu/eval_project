@@ -42,7 +42,7 @@ export default function App() {
           <Route path="dashboard" element={<Protected role="APPLICANT"><ApplicantDashboard /></Protected>} />
           <Route path="apply" element={<Protected role="APPLICANT"><ApplicationForm /></Protected>} />
           <Route path="apply/review" element={<Protected role="APPLICANT"><ReviewSubmit /></Protected>} />
-          <Route path="application/:id" element={<Protected><ApplicationDetail /></Protected>} />
+          <Route path="application/:id" element={<Protected role="APPLICANT"><ApplicationDetail /></Protected>} />
           <Route path="reviewer" element={<Protected role="REVIEWER"><ReviewerDashboard /></Protected>} />
           <Route path="reviewer/application/:id" element={<Protected role="REVIEWER"><ReviewerApplicationDetail /></Protected>} />
           <Route path="admin" element={<Protected role="ADMIN"><AdminSummary /></Protected>} />

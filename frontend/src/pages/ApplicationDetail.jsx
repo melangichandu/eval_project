@@ -97,7 +97,7 @@ export default function ApplicationDetail() {
       {app.status === 'APPROVED' && app.awardBreakdown && (
         <div className="card application-detail-award-breakdown-card">
           <h3>Award Breakdown</h3>
-          <p><strong>Total Score:</strong> {app.awardBreakdown.totalScore} / {app.awardBreakdown.maxScore}</p>
+          <p><strong>Total Score:</strong> {app.awardBreakdown?.totalScore ?? '—'} / {app.awardBreakdown?.maxScore ?? '—'}</p>
           <p><strong>Award Amount:</strong> <span className="award-amount">{formatCurrency(app.awardAmount)}</span></p>
         </div>
       )}

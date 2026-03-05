@@ -121,7 +121,7 @@ function mapRow(row) {
     eligibilityTotal: row.eligibility_total,
     eligibilityDetails: typeof row.eligibility_details === 'string' ? (() => { try { return JSON.parse(row.eligibility_details); } catch { return row.eligibility_details; } })() : row.eligibility_details,
     awardAmount: row.award_amount != null ? Number(row.award_amount) : null,
-    awardBreakdown: row.award_breakdown,
+    awardBreakdown: typeof row.award_breakdown === 'string' ? (() => { try { return JSON.parse(row.award_breakdown); } catch { return null; } })() : row.award_breakdown,
     status: row.status,
     reviewerId: row.reviewer_id,
     reviewerComments: row.reviewer_comments,
@@ -221,6 +221,7 @@ async function getOne(req, res, next) {
     const r = await pool.query('SELECT * FROM applications WHERE id = $1', [id]);
     if (r.rows.length === 0) return res.status(404).json({ error: 'Application not found' });
     const row = r.rows[0];
+    if (req.user.role === 'ADMIN') return res.status(403).json({ error: 'Access denied' });
     if (req.user.role === 'APPLICANT' && row.applicant_id !== req.user.id) {
       return res.status(403).json({ error: 'Access denied' });
     }
