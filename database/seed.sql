@@ -1,0 +1,6 @@
+-- Reviewer accounts are seeded via Node script (bcrypt hashes):
+-- Run: node backend/scripts/seedReviewers.js
+-- Or from repo root: docker-compose run --rm backend node scripts/seedReviewers.js
+-- Pre-seeded reviewers (from challenge doc):
+--   Marcus Johnson  - marcus.johnson@maplewood.gov / Reviewer123
+--   Sarah Mitchell  - sarah.mitchell@maplewood.gov / Reviewer123
