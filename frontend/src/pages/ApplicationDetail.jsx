@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, useLocation, Link } from 'react-router-dom';
 import { getApplication } from '../services/api';
 import StatusBadge from '../components/StatusBadge';
 import EligibilityPanel from '../components/EligibilityPanel';
 
 export default function ApplicationDetail() {
   const { id } = useParams();
+  const location = useLocation();
   const [app, setApp] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const showSubmitSuccess = location.state?.fromSubmit === true;
 
   useEffect(() => {
     getApplication(id)
@@ -33,6 +35,11 @@ export default function ApplicationDetail() {
   return (
     <>
       <p><Link to="/dashboard">← Dashboard</Link></p>
+      {showSubmitSuccess && (
+        <div className="card application-success-banner" role="status" aria-live="polite">
+          <p className="application-success-banner-p">Application submitted successfully.</p>
+        </div>
+      )}
       <h1>{app.projectTitle}</h1>
       <p><StatusBadge status={app.status} /> {app.awardAmount != null && `Award: $${Number(app.awardAmount).toLocaleString()}`}</p>
       <EligibilityPanel formData={eligibilityData} />

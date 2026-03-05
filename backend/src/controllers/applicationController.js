@@ -3,6 +3,93 @@ const eligibilityEngine = require('../services/eligibilityEngine');
 const awardCalculator = require('../services/awardCalculator');
 const path = require('path');
 
+const EIN_REGEX = /^\d{2}-\d{7}$/;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_REGEX = /^\(\d{3}\)\s*\d{3}-\d{4}$/;
+const currentYear = new Date().getFullYear();
+
+/** Validate create body. Returns error message or null. Never rejects for eligibility. */
+function validateCreateBody(body) {
+  if (!body || typeof body !== 'object') return 'Invalid request body';
+  const s = (v) => (v == null ? '' : String(v).trim());
+
+  if (!s(body.organizationName)) return 'Organization name is required';
+  if (s(body.organizationName).length < 2 || s(body.organizationName).length > 100) return 'Organization name must be 2–100 characters';
+
+  if (!s(body.ein)) return 'EIN (Tax ID) is required';
+  if (!EIN_REGEX.test(s(body.ein).replace(/\s/g, ''))) return 'EIN must be in format XX-XXXXXXX';
+
+  if (!s(body.organizationType)) return 'Organization type is required';
+
+  const y = body.yearFounded === '' || body.yearFounded == null ? null : Number(body.yearFounded);
+  if (y === null || isNaN(y)) return 'Year founded is required';
+  if (y < 1800 || y > currentYear) return `Year must be between 1800 and ${currentYear}`;
+
+  const budget = body.annualOperatingBudget === '' || body.annualOperatingBudget == null ? null : Number(body.annualOperatingBudget);
+  if (budget === null || isNaN(budget)) return 'Annual operating budget is required';
+  if (budget < 0 || budget > 100000000) return 'Budget must be $0–$100,000,000';
+
+  const emp = body.fullTimeEmployees === '' || body.fullTimeEmployees == null ? null : Number(body.fullTimeEmployees);
+  if (emp === null || isNaN(emp)) return 'Number of full-time employees is required';
+  if (emp < 0 || emp > 9999) return 'Full-time employees must be 0–9999';
+
+  if (!s(body.primaryContactName)) return 'Primary contact name is required';
+  if (s(body.primaryContactName).length < 2 || s(body.primaryContactName).length > 50) return 'Primary contact name must be 2–50 characters';
+
+  if (!s(body.primaryContactEmail)) return 'Primary contact email is required';
+  if (!EMAIL_REGEX.test(s(body.primaryContactEmail).toLowerCase())) return 'Enter a valid email address';
+
+  if (!s(body.primaryContactPhone)) return 'Primary contact phone is required';
+  if (!PHONE_REGEX.test(s(body.primaryContactPhone))) return 'Phone must be in format (XXX) XXX-XXXX';
+
+  if (!s(body.organizationAddress)) return 'Organization address is required';
+
+  if (!s(body.missionStatement)) return 'Mission statement is required';
+  if (s(body.missionStatement).length < 20 || s(body.missionStatement).length > 500) return 'Mission statement must be 20–500 characters';
+
+  if (!s(body.projectTitle)) return 'Project title is required';
+  if (s(body.projectTitle).length < 5 || s(body.projectTitle).length > 100) return 'Project title must be 5–100 characters';
+
+  if (!s(body.projectCategory)) return 'Project category is required';
+
+  if (!s(body.projectDescription)) return 'Project description is required';
+  if (s(body.projectDescription).length < 50 || s(body.projectDescription).length > 2000) return 'Project description must be 50–2000 characters';
+
+  if (!s(body.targetPopulation)) return 'Target population served is required';
+  if (s(body.targetPopulation).length < 5 || s(body.targetPopulation).length > 200) return 'Target population must be 5–200 characters';
+
+  const ben = body.estimatedBeneficiaries === '' || body.estimatedBeneficiaries == null ? null : Number(body.estimatedBeneficiaries);
+  if (ben === null || isNaN(ben)) return 'Estimated number of beneficiaries is required';
+  if (ben < 1 || ben > 1000000) return 'Estimated beneficiaries must be 1–1,000,000';
+
+  const total = body.totalProjectCost === '' || body.totalProjectCost == null ? null : Number(body.totalProjectCost);
+  if (total === null || isNaN(total)) return 'Total project cost is required';
+  if (total < 100 || total > 10000000) return 'Total project cost must be $100–$10,000,000';
+
+  const amt = body.amountRequested === '' || body.amountRequested == null ? null : Number(body.amountRequested);
+  if (amt === null || isNaN(amt)) return 'Amount requested is required';
+  if (amt < 100 || amt > 50000) return 'Amount requested must be $100–$50,000';
+
+  const startStr = body.projectStartDate ? s(body.projectStartDate) : '';
+  if (!startStr) return 'Project start date is required';
+  const startDate = new Date(startStr);
+  if (Number.isNaN(startDate.getTime())) return 'Invalid project start date';
+  const minStart = new Date();
+  minStart.setDate(minStart.getDate() + 30);
+  if (startDate < minStart) return 'Project start date must be at least 30 days from today';
+
+  const endStr = body.projectEndDate ? s(body.projectEndDate) : '';
+  if (!endStr) return 'Project end date is required';
+  const endDate = new Date(endStr);
+  if (Number.isNaN(endDate.getTime())) return 'Invalid project end date';
+  if (endDate <= startDate) return 'Project end date must be after start date';
+  const maxEnd = new Date(startDate);
+  maxEnd.setMonth(maxEnd.getMonth() + 24);
+  if (endDate > maxEnd) return 'Project end date must be within 24 months of start date';
+
+  return null;
+}
+
 function mapRow(row) {
   if (!row) return null;
   return {
@@ -45,20 +132,17 @@ function mapRow(row) {
 async function listMine(req, res, next) {
   try {
     const r = await pool.query(
-      'SELECT * FROM applications WHERE applicant_id = $1 ORDER BY submitted_at DESC',
+      `SELECT id, project_title, submitted_at, status, award_amount
+       FROM applications WHERE applicant_id = $1 ORDER BY submitted_at DESC`,
       [req.user.id]
     );
-    const docs = await pool.query('SELECT application_id, file_name, file_type, file_size, uploaded_at FROM documents');
-    const docMap = {};
-    docs.rows.forEach((d) => {
-      if (!docMap[d.application_id]) docMap[d.application_id] = [];
-      docMap[d.application_id].push({ fileName: d.file_name, fileType: d.file_type, fileSize: d.file_size, uploadedAt: d.uploaded_at });
-    });
-    const list = r.rows.map((row) => {
-      const app = mapRow(row);
-      app.documents = docMap[row.id] || [];
-      return app;
-    });
+    const list = r.rows.map((row) => ({
+      id: row.id,
+      projectTitle: row.project_title,
+      submittedAt: row.submitted_at,
+      status: row.status,
+      awardAmount: row.award_amount != null ? Number(row.award_amount) : null,
+    }));
     res.json(list);
   } catch (err) {
     next(err);
@@ -129,6 +213,9 @@ async function getOne(req, res, next) {
 async function create(req, res, next) {
   try {
     const body = req.body;
+    const validationError = validateCreateBody(body);
+    if (validationError) return res.status(400).json({ error: validationError });
+
     const eligibility = eligibilityEngine.run({
       organizationType: body.organizationType,
       yearFounded: body.yearFounded,

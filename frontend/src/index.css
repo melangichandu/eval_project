@@ -16,6 +16,18 @@
   box-sizing: border-box;
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 body {
   margin: 0;
   font-family: var(--font);
@@ -125,10 +137,29 @@ input, select, textarea {
   margin-top: 4px;
 }
 
-.form-group .error {
+.form-group .error,
+.error {
   font-size: 0.875rem;
   color: var(--danger);
   margin-top: 4px;
+}
+
+.form-group label.form-group-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.form-group .form-group-file-ok,
+.file-upload-name {
+  font-size: 0.875rem;
+  color: var(--success);
+  margin-top: 4px;
+}
+
+.file-upload-name .file-upload-size {
+  color: var(--neutral);
 }
 
 .card {
@@ -196,4 +227,326 @@ input, select, textarea {
 .auth-footer {
   margin-top: 16px;
   text-align: center;
+}
+
+/* Applicant dashboard – all styles here, no inline */
+.dashboard-welcome {
+  margin-bottom: 8px;
+}
+
+.dashboard-subtitle {
+  color: var(--neutral);
+  margin-bottom: 24px;
+}
+
+.dashboard-actions {
+  margin-bottom: 24px;
+}
+
+.dashboard-loading {
+  color: var(--neutral);
+  padding: 24px 0;
+}
+
+.dashboard-loading[aria-busy="true"] {
+  min-height: 60px;
+}
+
+.dashboard-error {
+  color: var(--danger);
+  margin-bottom: 16px;
+}
+
+.dashboard-error-actions {
+  margin-top: 8px;
+}
+
+.applications-table-wrap {
+  overflow-x: auto;
+}
+
+.applications-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.applications-table thead {
+  border-bottom: 2px solid #eee;
+  text-align: left;
+}
+
+.applications-table th {
+  padding: 12px;
+}
+
+.applications-table tbody tr {
+  border-bottom: 1px solid #eee;
+}
+
+.applications-table td {
+  padding: 12px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 48px 24px;
+}
+
+.empty-state p {
+  margin-bottom: 16px;
+}
+
+.empty-state .btn {
+  margin-top: 8px;
+}
+
+/* Application form (US-104): two sections, no inline styles */
+.application-form-page {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .application-form-page {
+    grid-template-columns: 1fr;
+  }
+}
+
+.application-form-sidebar {
+  position: sticky;
+  top: 24px;
+}
+
+.form-section {
+  margin-bottom: 24px;
+}
+
+.form-section h2 {
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+.form-navigation {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 24px;
+  gap: 12px;
+}
+
+.form-navigation.form-navigation--between {
+  justify-content: space-between;
+}
+
+.form-navigation .btn {
+  min-width: 44px;
+}
+
+@media (max-width: 480px) {
+  .form-navigation {
+    flex-direction: column;
+  }
+  .form-navigation .btn {
+    width: 100%;
+  }
+}
+
+/* Eligibility panel (US-105): all styles here, no inline */
+.eligibility-panel {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.eligibility-panel.eligibility-panel--eligible {
+  border-left: 4px solid var(--success);
+}
+
+.eligibility-panel.eligibility-panel--not-eligible {
+  border-left: 4px solid var(--warning);
+}
+
+.eligibility-panel.eligibility-panel--neutral {
+  border-left: 4px solid var(--neutral);
+}
+
+.eligibility-panel h3 {
+  margin-top: 0;
+  margin-bottom: 12px;
+}
+
+.eligibility-summary {
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+  font-weight: 600;
+}
+
+.eligibility-summary--eligible {
+  background: #E8F5E9;
+  color: var(--success);
+}
+
+.eligibility-summary--not-eligible {
+  background: #FFF3E0;
+  color: var(--warning);
+}
+
+.eligibility-summary--neutral {
+  background: #F5F5F5;
+  color: var(--neutral);
+}
+
+.eligibility-panel .eligibility-rules-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.eligibility-rule {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.eligibility-rule-icon {
+  flex-shrink: 0;
+  font-size: 1.2rem;
+  width: 1.5em;
+  text-align: center;
+}
+
+.eligibility-rule-icon.eligibility-pass {
+  color: var(--success);
+}
+
+.eligibility-rule-icon.eligibility-fail {
+  color: var(--danger);
+}
+
+.eligibility-rule-icon.eligibility-neutral {
+  color: var(--neutral);
+}
+
+.eligibility-rule-message {
+  flex: 1;
+}
+
+.eligibility-rule-message.eligibility-pass {
+  color: var(--success);
+}
+
+.eligibility-rule-message.eligibility-fail {
+  color: var(--danger);
+}
+
+.eligibility-rule-message.eligibility-neutral {
+  color: var(--neutral);
+}
+
+.eligibility-panel-note {
+  font-size: 0.875rem;
+  color: var(--neutral);
+  margin-top: 12px;
+  margin-bottom: 0;
+}
+
+/* Review & Submit (US-106, US-107): summary, sections, actions */
+.review-submit-heading {
+  margin-top: 0;
+}
+
+.review-summary {
+  margin-bottom: 24px;
+}
+
+.review-section {
+  margin-bottom: 24px;
+}
+
+.review-section:last-of-type {
+  margin-bottom: 0;
+}
+
+.review-section-heading {
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-size: 1.125rem;
+}
+
+.review-dl {
+  margin: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 24px;
+  align-items: baseline;
+}
+
+.review-dl dt {
+  font-weight: 600;
+  color: #060808;
+}
+
+.review-dl dd {
+  margin: 0;
+  color: #060808;
+}
+
+.review-dl dt,
+.review-dl dd {
+  min-height: 1.5em;
+}
+
+.review-doc-meta {
+  color: var(--neutral);
+  font-size: 0.875rem;
+}
+
+.review-no-doc {
+  color: var(--neutral);
+  font-style: italic;
+}
+
+.review-eligibility {
+  margin-bottom: 24px;
+}
+
+.review-eligibility .eligibility-panel {
+  margin-bottom: 0;
+}
+
+.review-warning {
+  background: #FFF3E0;
+  border-left: 4px solid var(--warning);
+}
+
+.review-submit-actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.eligibility-warning-card {
+  background: #FFF3E0;
+  border-left: 4px solid var(--warning);
+}
+
+.eligibility-warning-card-p {
+  margin: 0;
+}
+
+/* Application detail: success banner after submit (US-108) */
+.application-success-banner {
+  background: #E8F5E9;
+  border-left: 4px solid var(--success);
+  margin-bottom: 24px;
+}
+
+.application-success-banner-p {
+  margin: 0;
+  color: var(--success);
+  font-weight: 600;
 }

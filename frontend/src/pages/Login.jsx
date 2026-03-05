@@ -16,9 +16,11 @@ export default function Login() {
     try {
       const data = await login(email, password);
       setAuth(data.token, data.user);
+      setPassword('');
       navigate(data.user.role === 'REVIEWER' ? '/reviewer' : '/dashboard');
     } catch (err) {
-      setError(err.message || 'Login failed');
+      setError(err.message || 'Invalid email or password');
+      setPassword('');
     } finally {
       setLoading(false);
     }
@@ -30,31 +32,35 @@ export default function Login() {
         <h2>Log in</h2>
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="login-email">Email</label>
+            <label htmlFor="email">Email</label>
             <input
-              id="login-email"
+              id="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
               autoComplete="email"
               aria-required="true"
+              aria-invalid={!!error}
+              aria-describedby={error ? 'login-error' : undefined}
             />
           </div>
           <div className="form-group">
-            <label htmlFor="login-password">Password</label>
+            <label htmlFor="password">Password</label>
             <input
-              id="login-password"
+              id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
               autoComplete="current-password"
               aria-required="true"
+              aria-invalid={!!error}
+              aria-describedby={error ? 'login-error' : undefined}
             />
           </div>
           {error && (
-            <p className="error-summary" role="alert">
+            <p id="login-error" className="error-summary" role="alert">
               {error}
             </p>
           )}

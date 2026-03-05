@@ -65,13 +65,13 @@ Use the table below to track status for each prompt. Update **Status** and **Com
 | # | Prompt ID | Title | Status | Completed | Notes |
 |:--|:----------|:------|:-------|:----------|:------|
 | 1 | US-101 | Create Account | ✅ Done | 2025-03-05 | Backend validation, Register.jsx a11y + index.css only. |
-| 2 | US-102 | Log In | ⬜ Not Started | | |
-| 3 | US-103 | View My Applications | ⬜ Not Started | | |
-| 4 | US-104 | Application Form | ⬜ Not Started | | |
-| 5 | US-105 | Eligibility Check | ⬜ Not Started | | |
-| 6 | US-106 | Document Upload | ⬜ Not Started | | |
-| 7 | US-107 | Review Step | ⬜ Not Started | | |
-| 8 | US-108 | Submit Application | ⬜ Not Started | | |
+| 2 | US-102 | Log In | ✅ Done | 2025-03-05 | POST /login, Login.jsx, PublicOnly; index.css only; role redirect. |
+| 3 | US-103 | View My Applications | ✅ Done | 2025-03-05 | Dashboard, table/empty state, index.css only; listMine slim; a11y + retry. |
+| 4 | US-104 | Application Form | ✅ Done | 2025-03-05 | Two-section form, validation (EIN/phone/dates/ranges), a11y, index.css only; draft in sessionStorage. |
+| 5 | US-105 | Eligibility Check | ✅ Done | 2025-03-05 | eligibilityEngine (FE/BE), EligibilityPanel, index.css only; neutral state; a11y. |
+| 6 | US-106 | Document Upload | ✅ Done | 2025-03-05 | File input Section 2; upload after submit; multer 5MB/MIME; ownership check; .file-upload-name in index.css; upload error surfaced. |
+| 7 | US-107 | Review Step | ✅ Done | 2025-03-05 | Read-only summary (Org + Project), eligibility, warning, Back to Edit with state; styles in index.css. |
+| 8 | US-108 | Submit When Not Fully Eligible | ✅ Done | 2025-03-05 | Backend: validate required/format only, store eligibility, never 400 for score; FE: warning only, success banner. |
 | 9 | US-201 | Reviewer Login and Dashboard | ⬜ Not Started | | |
 | 10 | US-202 | List All Applications with Eligibility Status | ⬜ Not Started | | |
 | 11 | US-203 | Application Detail with Eligibility Results (Reviewer) | ⬜ Not Started | | |
@@ -107,4 +107,4 @@ Use the table below to track status for each prompt. Update **Status** and **Com
 
 ---
 
-*Last updated: 2025-03-05.*
+*Last updated: 2025-03-05 (US-108 completed).*

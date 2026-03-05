@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { getStoredUser } from '../services/api';
-import { getMyApplications } from '../services/api';
+import { getStoredUser, getMyApplications } from '../services/api';
 import StatusBadge from '../components/StatusBadge';
 
 export default function ApplicantDashboard() {
@@ -10,51 +9,89 @@ export default function ApplicantDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
+  const fetchApplications = useCallback(() => {
+    setError('');
+    setLoading(true);
     getMyApplications()
       .then(setList)
-      .catch((e) => setError(e.message))
+      .catch((e) => setError(e.message || 'Failed to load applications'))
       .finally(() => setLoading(false));
   }, []);
 
+  useEffect(() => {
+    fetchApplications();
+  }, [fetchApplications]);
+
+  const firstName = user?.fullName?.split(' ')[0] || 'Applicant';
+
   return (
     <>
-      <h1 style={{ marginBottom: 8 }}>Welcome, {user?.fullName?.split(' ')[0] || 'Applicant'}</h1>
-      <p style={{ color: 'var(--neutral)', marginBottom: 24 }}>View and manage your grant applications.</p>
-      <div style={{ marginBottom: 24 }}>
-        <Link to="/apply" className="btn btn-primary">Start New Application</Link>
+      <h1 className="dashboard-welcome">Welcome, {firstName}</h1>
+      <p className="dashboard-subtitle">View and manage your grant applications.</p>
+      <div className="dashboard-actions">
+        <Link to="/apply" className="btn btn-primary">
+          Start New Application
+        </Link>
       </div>
-      {error && <p style={{ color: 'var(--danger)' }}>{error}</p>}
-      {loading && <p>Loading applications…</p>}
-      {!loading && !error && list.length === 0 && (
-        <div className="card" style={{ textAlign: 'center', padding: 48 }}>
-          <p style={{ marginBottom: 16 }}>You haven&apos;t submitted any applications yet.</p>
-          <Link to="/apply" className="btn btn-primary">Start New Application</Link>
+
+      <div
+        className="dashboard-loading"
+        aria-busy={loading}
+        aria-live="polite"
+        role="status"
+        aria-label={loading ? 'Loading applications' : undefined}
+      >
+        {loading && 'Loading applications…'}
+      </div>
+
+      {error && (
+        <div className="dashboard-error card" role="alert">
+          <p>{error}</p>
+          <div className="dashboard-error-actions">
+            <button type="button" className="btn btn-primary" onClick={fetchApplications}>
+              Try again
+            </button>
+          </div>
         </div>
       )}
-      {!loading && list.length > 0 && (
-        <div className="card" style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+
+      {!loading && !error && list.length === 0 && (
+        <section className="card empty-state" aria-labelledby="empty-state-heading">
+          <h2 id="empty-state-heading" className="sr-only">
+            No applications yet
+          </h2>
+          <p>You haven&apos;t submitted any applications yet.</p>
+          <Link to="/apply" className="btn btn-primary">
+            Start New Application
+          </Link>
+        </section>
+      )}
+
+      {!loading && !error && list.length > 0 && (
+        <div className="card applications-table-wrap">
+          <table className="applications-table" aria-label="Your applications">
             <thead>
-              <tr style={{ borderBottom: '2px solid #eee', textAlign: 'left' }}>
-                <th style={{ padding: 12 }}>Application ID</th>
-                <th style={{ padding: 12 }}>Project Title</th>
-                <th style={{ padding: 12 }}>Date Submitted</th>
-                <th style={{ padding: 12 }}>Status</th>
-                <th style={{ padding: 12 }}>Award Amount</th>
-                <th style={{ padding: 12 }}></th>
+              <tr>
+                <th scope="col">Application ID</th>
+                <th scope="col">Project Title</th>
+                <th scope="col">Date Submitted</th>
+                <th scope="col">Status</th>
+                <th scope="col">Award Amount</th>
+                <th scope="col">Action</th>
               </tr>
             </thead>
             <tbody>
               {list.map((app) => (
-                <tr key={app.id} style={{ borderBottom: '1px solid #eee' }}>
-                  <td style={{ padding: 12 }}>{app.id.slice(0, 8)}…</td>
-                  <td style={{ padding: 12 }}>{app.projectTitle}</td>
-                  <td style={{ padding: 12 }}>{new Date(app.submittedAt).toLocaleDateString()}</td>
-                  <td style={{ padding: 12 }}><StatusBadge status={app.status} /></td>
-                  <td style={{ padding: 12 }}>{app.awardAmount != null ? `$${Number(app.awardAmount).toLocaleString()}` : '—'}</td>
-                  <td style={{ padding: 12 }}>
-                    <Link to={`/application/${app.id}`}>View</Link>
+                <tr key={app.id}>
+                  <td>{app.id.slice(0, 8)}…</td>
+                  <td>{app.projectTitle}</td>
+                  <td>{new Date(app.submittedAt).toLocaleDateString()}</td>
+                  <td>
+                    <StatusBadge status={app.status} />
+                  </td>
+                  <td>{app.awardAmount != null ? `$${Number(app.awardAmount).toLocaleString()}` : '—'}</td>
+                  <td>
+                    <Link to={`/application/${app.id}`}>View application</Link>
                   </td>
                 </tr>
               ))}
