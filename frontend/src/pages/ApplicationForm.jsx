@@ -16,6 +16,15 @@ const minStartDate = (() => {
   return d.toISOString().slice(0, 10);
 })();
 
+function parseLocalDate(isoDateStr) {
+  const match = (isoDateStr || '').trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return null;
+  const [, y, m, d] = match.map(Number);
+  const d2 = new Date(y, m - 1, d);
+  if (d2.getFullYear() !== y || d2.getMonth() !== m - 1 || d2.getDate() !== d) return null;
+  return d2;
+}
+
 const initialForm = {
   organizationName: '', ein: '', organizationType: '', yearFounded: '', annualOperatingBudget: '', fullTimeEmployees: '',
   primaryContactName: '', primaryContactEmail: '', primaryContactPhone: '', organizationAddress: '', missionStatement: '',
@@ -28,6 +37,12 @@ function formatPhone(value) {
   if (digits.length <= 3) return digits ? `(${digits}` : '';
   if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
   return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
+}
+
+function formatEin(value) {
+  const digits = (value || '').replace(/\D/g, '');
+  if (digits.length <= 2) return digits;
+  return `${digits.slice(0, 2)}-${digits.slice(2, 9)}`;
 }
 
 function validateSection1Fields(form) {
@@ -102,21 +117,22 @@ function validateSection2Fields(form) {
   const startStr = form.projectStartDate ? form.projectStartDate.trim() : '';
   if (!startStr) err.projectStartDate = 'Project start date is required';
   else {
-    const startDate = new Date(startStr);
+    const startDate = parseLocalDate(startStr);
     const minStart = new Date();
     minStart.setDate(minStart.getDate() + 30);
-    if (startDate < minStart) err.projectStartDate = 'Project start date must be at least 30 days from today';
+    minStart.setHours(0, 0, 0, 0);
+    if (!startDate || startDate < minStart) err.projectStartDate = 'Project start date must be at least 30 days from today';
   }
 
   const endStr = form.projectEndDate ? form.projectEndDate.trim() : '';
   if (!endStr) err.projectEndDate = 'Project end date is required';
   else if (startStr) {
-    const startDate = new Date(startStr);
-    const endDate = new Date(endStr);
-    if (endDate <= startDate) err.projectEndDate = 'Project end date must be after start date';
+    const startDate = parseLocalDate(startStr);
+    const endDate = parseLocalDate(endStr);
+    if (!endDate) err.projectEndDate = 'Invalid project end date';
+    else if (endDate <= startDate) err.projectEndDate = 'Project end date must be after start date';
     else {
-      const maxEnd = new Date(startDate);
-      maxEnd.setMonth(maxEnd.getMonth() + 24);
+      const maxEnd = new Date(startDate.getFullYear(), startDate.getMonth() + 24, startDate.getDate());
       if (endDate > maxEnd) err.projectEndDate = 'Project end date must be within 24 months of start date';
     }
   }
@@ -129,12 +145,15 @@ export default function ApplicationForm() {
   const location = useLocation();
   const [section, setSection] = useState(1);
   const [form, setForm] = useState(() => {
+    let initial = initialForm;
     const fromState = location.state?.form;
-    if (fromState && typeof fromState === 'object') return { ...initialForm, ...fromState };
-    try {
+    if (fromState && typeof fromState === 'object') initial = { ...initialForm, ...fromState };
+    else try {
       const s = sessionStorage.getItem('grant_draft');
-      return s ? { ...initialForm, ...JSON.parse(s) } : initialForm;
-    } catch { return initialForm; }
+      if (s) initial = { ...initialForm, ...JSON.parse(s) };
+    } catch {}
+    if (initial.ein) initial = { ...initial, ein: formatEin(initial.ein) };
+    return initial;
   });
   const [file, setFile] = useState(() => location.state?.file ?? null);
   const [fileError, setFileError] = useState('');
@@ -150,10 +169,17 @@ export default function ApplicationForm() {
     if (name === 'primaryContactPhone' && type !== 'checkbox') {
       const formatted = formatPhone(value);
       setForm((f) => ({ ...f, [name]: formatted }));
+      setFieldErrors((prev) => ({ ...prev, [name]: '' }));
+    } else if (name === 'ein' && type !== 'checkbox') {
+      const formatted = formatEin(value);
+      setForm((f) => ({ ...f, [name]: formatted }));
+      const trimmed = formatted.replace(/\s/g, '');
+      const einError = !trimmed ? '' : !EIN_REGEX.test(trimmed) ? 'EIN must be in format XX-XXXXXXX (2 digits, hyphen, 7 digits)' : '';
+      setFieldErrors((prev) => ({ ...prev, ein: einError }));
     } else {
       setForm((f) => ({ ...f, [name]: type === 'checkbox' ? checked : value }));
+      setFieldErrors((prev) => ({ ...prev, [name]: '' }));
     }
-    setFieldErrors((prev) => ({ ...prev, [name]: '' }));
     setFileError('');
     setSubmitSummaryError('');
   };
@@ -267,6 +293,9 @@ export default function ApplicationForm() {
                   onChange={handleChange}
                   onBlur={handleBlur}
                   placeholder="XX-XXXXXXX"
+                  maxLength={10}
+                  inputMode="numeric"
+                  autoComplete="off"
                   aria-required="true"
                   aria-invalid={!!fieldErrors.ein}
                   aria-describedby={fieldErrors.ein ? `${id('ein')}-error` : undefined}
@@ -706,7 +735,7 @@ export default function ApplicationForm() {
                     type="checkbox"
                     checked={form.previouslyReceivedGrant}
                     onChange={handleChange}
-                    aria-describedby={id('previouslyReceivedGrant')}-help
+                    aria-describedby={`${id('previouslyReceivedGrant')}-help`}
                   />
                   <span>Previously Received Maplewood Grant</span>
                 </label>

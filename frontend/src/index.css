@@ -183,6 +183,12 @@ input, select, textarea {
   outline-offset: 2px;
 }
 
+.form-group input[aria-invalid="true"],
+.form-group select[aria-invalid="true"],
+.form-group textarea[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+
 .form-group .help {
   font-size: 0.875rem;
   color: var(--neutral);
@@ -244,6 +250,51 @@ input, select, textarea {
   margin: 24px auto;
   width: 100%;
   padding: 0 16px;
+}
+
+.login-page .password-field-wrap {
+  position: relative;
+  display: block;
+}
+
+.login-page .password-field-wrap input {
+  padding-right: 48px;
+}
+
+.login-page .password-toggle-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--neutral);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+.login-page .password-toggle-btn:hover {
+  color: var(--primary);
+}
+
+.login-page .password-toggle-btn:focus {
+  outline: none;
+}
+
+.login-page .password-toggle-btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.login-page .password-toggle-icon {
+  flex-shrink: 0;
+  pointer-events: none;
 }
 
 .register-page .card,

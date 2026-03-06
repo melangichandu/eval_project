@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { submitApplication, uploadDocument } from '../services/api';
+import { run as runEligibility } from '../services/eligibilityEngine';
 import EligibilityPanel from '../components/EligibilityPanel';
 
 function formatCurrency(n) {
@@ -17,6 +18,33 @@ function formatDate(str) {
 function formatNumber(n) {
   if (n === '' || n == null || isNaN(Number(n))) return '—';
   return new Intl.NumberFormat().format(Number(n));
+}
+
+function parseLocalDate(isoDateStr) {
+  const match = (isoDateStr || '').trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return null;
+  const [, y, m, d] = match.map(Number);
+  const d2 = new Date(y, m - 1, d);
+  if (d2.getFullYear() !== y || d2.getMonth() !== m - 1 || d2.getDate() !== d) return null;
+  return d2;
+}
+
+function validateFormDates(form) {
+  const startStr = form?.projectStartDate?.trim() || '';
+  const endStr = form?.projectEndDate?.trim() || '';
+  if (!startStr) return 'Project start date is required.';
+  const startDate = parseLocalDate(startStr);
+  const minStart = new Date();
+  minStart.setDate(minStart.getDate() + 30);
+  minStart.setHours(0, 0, 0, 0);
+  if (!startDate || startDate < minStart) return 'Project start date must be at least 30 days from today.';
+  if (!endStr) return 'Project end date is required.';
+  const endDate = parseLocalDate(endStr);
+  if (!endDate) return 'Invalid project end date.';
+  if (endDate <= startDate) return 'Project end date must be after start date.';
+  const maxEnd = new Date(startDate.getFullYear(), startDate.getMonth() + 24, startDate.getDate());
+  if (endDate > maxEnd) return 'Project end date must be within 24 months of start date.';
+  return null;
 }
 
 export default function ReviewSubmit() {
@@ -47,6 +75,11 @@ export default function ReviewSubmit() {
 
   const handleSubmit = async () => {
     if (!form) return;
+    const dateError = validateFormDates(form);
+    if (dateError) {
+      setError(dateError);
+      return;
+    }
     setError('');
     setLoading(true);
     try {
@@ -97,11 +130,7 @@ export default function ReviewSubmit() {
 
   const eligible = eligibilityData && (eligibilityData.organizationType && eligibilityData.yearFounded != null && eligibilityData.annualOperatingBudget != null &&
     eligibilityData.amountRequested != null && eligibilityData.totalProjectCost != null && eligibilityData.estimatedBeneficiaries != null);
-  const allSix = eligible && (() => {
-    const { run } = require('../services/eligibilityEngine');
-    const r = run(eligibilityData);
-    return r.eligible;
-  })();
+  const allSix = eligible && runEligibility(eligibilityData).eligible;
 
   return (
     <>

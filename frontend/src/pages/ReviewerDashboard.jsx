@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { getAllApplications, getApplicationsSummary } from '../services/api';
 import StatusBadge from '../components/StatusBadge';
 
-const currencyFormat = new Intl.NumberFormat('en-US', { style: 'currency', maximumFractionDigits: 0 });
+const currencyFormat = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
 const numberFormat = new Intl.NumberFormat('en-US');
 
 export default function ReviewerDashboard() {

@@ -74,16 +74,19 @@ async function login(req, res, next) {
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password required' });
     }
+    const normalizedEmail = email.trim().toLowerCase();
     const result = await pool.query(
       'SELECT id, email, password_hash, full_name, phone, organization_name, role FROM users WHERE email = $1',
-      [email.trim().toLowerCase()]
+      [normalizedEmail]
     );
     if (result.rows.length === 0) {
+      console.warn('[auth] Login failed: no user for email', normalizedEmail);
       return res.status(401).json({ error: 'Invalid email or password' });
     }
     const user = result.rows[0];
     const valid = await bcrypt.compare(password, user.password_hash);
     if (!valid) {
+      console.warn('[auth] Login failed: wrong password for', user.email);
       return res.status(401).json({ error: 'Invalid email or password' });
     }
     const token = jwt.sign(
