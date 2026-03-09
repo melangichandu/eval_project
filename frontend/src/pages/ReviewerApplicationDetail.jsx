@@ -227,7 +227,7 @@ export default function ReviewerApplicationDetail() {
       </p>
       <h1 className="reviewer-detail-heading">{app.projectTitle}</h1>
       <p className="reviewer-detail-meta">
-        <StatusBadge status={app.status} /> {app.orgName || app.organizationName}
+        <StatusBadge status={app.status} /> {app.organizationName || app.orgName}
       </p>
 
       {/* Eligibility results from stored data */}

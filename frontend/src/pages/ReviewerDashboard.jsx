@@ -162,7 +162,7 @@ export default function ReviewerDashboard() {
               {list.map((app) => (
                 <tr key={app.id}>
                   <td>{app.id.slice(0, 8)}…</td>
-                  <td>{app.orgName || app.organizationName}</td>
+                  <td>{app.organizationName || app.orgName}</td>
                   <td>{app.projectTitle}</td>
                   <td>{new Date(app.submittedAt).toLocaleDateString()}</td>
                   <td>

@@ -407,7 +407,7 @@ export default function ApplicationForm() {
                     onBlur={handleBlur}
                     min={0}
                     max={100000000}
-                    step={1000}
+                    step={1}
                     aria-required="true"
                     aria-invalid={!!fieldErrors.annualOperatingBudget}
                     aria-describedby={fieldErrors.annualOperatingBudget ? `${id('annualOperatingBudget')}-error` : undefined}
@@ -691,7 +691,7 @@ export default function ApplicationForm() {
                     onBlur={handleBlur}
                     min={100}
                     max={10000000}
-                    step={100}
+                    step={1}
                     aria-required="true"
                     aria-invalid={!!fieldErrors.totalProjectCost}
                     aria-describedby={fieldErrors.totalProjectCost ? `${id('totalProjectCost')}-error` : undefined}
@@ -718,7 +718,7 @@ export default function ApplicationForm() {
                     onBlur={handleBlur}
                     min={100}
                     max={50000}
-                    step={100}
+                    step={1}
                     aria-required="true"
                     aria-invalid={!!fieldErrors.amountRequested}
                     aria-describedby={fieldErrors.amountRequested ? `${id('amountRequested')}-error` : undefined}
