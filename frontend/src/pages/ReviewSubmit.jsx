@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { submitApplication, uploadDocument } from '../services/api';
+import { submitApplication, uploadDocuments } from '../services/api';
 import { run as runEligibility } from '../services/eligibilityEngine';
 import EligibilityPanel from '../components/EligibilityPanel';
 
@@ -51,7 +51,12 @@ export default function ReviewSubmit() {
   const navigate = useNavigate();
   const { state } = useLocation();
   const [form, setForm] = useState(state?.form || null);
-  const [file, setFile] = useState(state?.file || null);
+  const [files, setFiles] = useState(() => {
+    const s = state;
+    if (Array.isArray(s?.files) && s.files.length) return s.files;
+    if (s?.file) return [s.file];
+    return [];
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [createdAppId, setCreatedAppId] = useState(null);
@@ -61,7 +66,7 @@ export default function ReviewSubmit() {
   }, [form, navigate]);
 
   const handleBackToEdit = () => {
-    navigate('/apply', { state: { form, file } });
+    navigate('/apply', { state: { form, files } });
   };
 
   const eligibilityData = form ? {
@@ -108,11 +113,11 @@ export default function ReviewSubmit() {
       };
       const app = await submitApplication(payload);
       setCreatedAppId(app.id);
-      if (file) {
+      if (files.length > 0) {
         try {
-          await uploadDocument(app.id, file);
+          await uploadDocuments(app.id, files);
         } catch (e) {
-          setError(`Your application was submitted, but the document upload failed: ${e.message}. You can go to your application and try uploading again.`);
+          setError(`Your application was submitted, but document upload failed: ${e.message}. You can go to your application and try uploading again.`);
           setLoading(false);
           return;
         }
@@ -189,17 +194,21 @@ export default function ReviewSubmit() {
             <dd>{formatDate(form.projectEndDate)}</dd>
             <dt>Previously Received Maplewood Grant</dt>
             <dd>{form.previouslyReceivedGrant ? 'Yes' : 'No'}</dd>
-            <dt>Supporting Document</dt>
+            <dt>Supporting Documents</dt>
             <dd>
-              {file ? (
-                <>
-                  {file.name}
-                  {file.size != null && (
-                    <span className="review-doc-meta"> ({(file.size / 1024).toFixed(1)} KB)</span>
-                  )}
-                </>
+              {files.length > 0 ? (
+                <ul className="review-doc-list">
+                  {files.map((f, i) => (
+                    <li key={`${f.name}-${i}`}>
+                      {f.name}
+                      {f.size != null && (
+                        <span className="review-doc-meta"> ({(f.size / 1024).toFixed(1)} KB)</span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
               ) : (
-                <span className="review-no-doc">No document selected</span>
+                <span className="review-no-doc">No documents selected</span>
               )}
             </dd>
           </dl>
@@ -236,7 +245,7 @@ export default function ReviewSubmit() {
         <button type="button" className="btn btn-neutral" onClick={handleBackToEdit} disabled={loading}>
           Back to Edit
         </button>
-        <button type="button" className="btn btn-primary" onClick={handleSubmit} disabled={loading || !file}>
+        <button type="button" className="btn btn-primary" onClick={handleSubmit} disabled={loading || files.length === 0}>
           {loading ? 'Submitting…' : 'Submit Application'}
         </button>
       </div>

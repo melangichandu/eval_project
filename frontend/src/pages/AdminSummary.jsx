@@ -1,19 +1,19 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { getAdminSummary } from '../services/api';
 
 const currencyFormat = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
 const numberFormat = new Intl.NumberFormat('en-US');
 
+const PROGRAM_BUDGET = 2_000_000; // $2M total program funds
+
 export default function AdminSummary() {
-  const headingRef = useRef(null);
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
     document.title = 'Grant program summary | Maplewood County';
-    headingRef.current?.focus?.();
   }, []);
 
   const fetchSummary = useCallback(() => {
@@ -31,7 +31,7 @@ export default function AdminSummary() {
 
   return (
     <div className="admin-summary">
-      <h1 className="admin-summary-heading" ref={headingRef} tabIndex={-1}>
+      <h1 className="admin-summary-heading">
         Grant program summary
       </h1>
       <p className="admin-summary-note">
@@ -76,16 +76,33 @@ export default function AdminSummary() {
               </div>
             </div>
           </section>
-          <section className="card total-awarded-block" aria-labelledby="total-awarded-heading">
-            <h2 id="total-awarded-heading" className="total-awarded-heading">Total funds awarded</h2>
-            <p className="total-awarded-value" aria-label={`Total funds awarded: ${currencyFormat.format(summary.totalAwarded)}`}>
-              {currencyFormat.format(summary.totalAwarded)}
-            </p>
+          <section className="summary-funds" aria-label="Program funds summary">
+            <h2 className="summary-funds-heading">Program funds</h2>
+            <div className="summary-funds-inner">
+              <div className="card summary-item summary-fund-card">
+                <span className="summary-item-label">Total funds</span>
+                <span className="summary-item-value" aria-label={`Total program funds: ${currencyFormat.format(PROGRAM_BUDGET)}`}>
+                  {currencyFormat.format(PROGRAM_BUDGET)}
+                </span>
+              </div>
+              <div className="card summary-item summary-fund-card">
+                <span className="summary-item-label">Total funds awarded</span>
+                <span className="summary-item-value" aria-label={`Total funds awarded: ${currencyFormat.format(summary.totalAwarded)}`}>
+                  {currencyFormat.format(summary.totalAwarded)}
+                </span>
+              </div>
+              <div className="card summary-item summary-fund-card">
+                <span className="summary-item-label">Remaining funds</span>
+                <span className="summary-item-value" aria-label={`Remaining funds: ${currencyFormat.format(PROGRAM_BUDGET - summary.totalAwarded)}`}>
+                  {currencyFormat.format(Math.max(0, PROGRAM_BUDGET - summary.totalAwarded))}
+                </span>
+              </div>
+            </div>
           </section>
         </>
       )}
       <p className="admin-summary-back">
-        <Link to="/">Back to home</Link>
+        <Link to="/" className="admin-summary-back-link">← Back to home</Link>
       </p>
     </div>
   );

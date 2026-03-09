@@ -7,6 +7,12 @@ import EligibilityPanel from '../components/EligibilityPanel';
 const formatCurrency = (amount) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(amount);
 
+const formatDateOnly = (str) => {
+  if (!str || !String(str).trim()) return '—';
+  const d = new Date(String(str).trim());
+  return Number.isNaN(d.getTime()) ? str : d.toLocaleDateString();
+};
+
 export default function ApplicationDetail() {
   const { id } = useParams();
   const location = useLocation();
@@ -76,7 +82,7 @@ export default function ApplicationDetail() {
         <p><strong>Beneficiaries:</strong> {app.estimatedBeneficiaries}</p>
         <p><strong>Total Cost:</strong> ${Number(app.totalProjectCost).toLocaleString()}</p>
         <p><strong>Amount Requested:</strong> ${Number(app.amountRequested).toLocaleString()}</p>
-        <p><strong>Dates:</strong> {app.projectStartDate} to {app.projectEndDate}</p>
+        <p><strong>Dates:</strong> {formatDateOnly(app.projectStartDate)} to {formatDateOnly(app.projectEndDate)}</p>
       </div>
       {app.documents?.length > 0 && (
         <div className="card">

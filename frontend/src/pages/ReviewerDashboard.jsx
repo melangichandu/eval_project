@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { getAllApplications, getApplicationsSummary } from '../services/api';
 import StatusBadge from '../components/StatusBadge';
@@ -7,7 +7,6 @@ const currencyFormat = new Intl.NumberFormat('en-US', { style: 'currency', curre
 const numberFormat = new Intl.NumberFormat('en-US');
 
 export default function ReviewerDashboard() {
-  const headingRef = useRef(null);
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -19,7 +18,6 @@ export default function ReviewerDashboard() {
 
   useEffect(() => {
     document.title = 'Reviewer Dashboard | Maplewood County';
-    headingRef.current?.focus?.();
   }, []);
 
   const fetchSummary = useCallback(() => {
@@ -53,7 +51,7 @@ export default function ReviewerDashboard() {
 
   return (
     <>
-      <h1 className="reviewer-dashboard-heading" ref={headingRef} tabIndex={-1}>
+      <h1 className="reviewer-dashboard-heading">
         Reviewer Dashboard
       </h1>
       <p className="reviewer-dashboard-description">

@@ -25,6 +25,15 @@ function parseLocalDate(isoDateStr) {
   return d2;
 }
 
+/** Max project end date: exactly 24 months after start date (YYYY-MM-DD). */
+function getMaxEndDateFromStart(startDateStr) {
+  if (!startDateStr || !startDateStr.trim()) return undefined;
+  const start = parseLocalDate(startDateStr.trim());
+  if (!start) return undefined;
+  const maxEnd = new Date(start.getFullYear(), start.getMonth() + 24, start.getDate());
+  return maxEnd.toISOString().slice(0, 10);
+}
+
 const initialForm = {
   organizationName: '', ein: '', organizationType: '', yearFounded: '', annualOperatingBudget: '', fullTimeEmployees: '',
   primaryContactName: '', primaryContactEmail: '', primaryContactPhone: '', organizationAddress: '', missionStatement: '',
@@ -155,7 +164,12 @@ export default function ApplicationForm() {
     if (initial.ein) initial = { ...initial, ein: formatEin(initial.ein) };
     return initial;
   });
-  const [file, setFile] = useState(() => location.state?.file ?? null);
+  const [files, setFiles] = useState(() => {
+    const s = location.state;
+    if (Array.isArray(s?.files) && s.files.length) return s.files;
+    if (s?.file) return [s.file];
+    return [];
+  });
   const [fileError, setFileError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
   const [submitSummaryError, setSubmitSummaryError] = useState('');
@@ -177,8 +191,19 @@ export default function ApplicationForm() {
       const einError = !trimmed ? '' : !EIN_REGEX.test(trimmed) ? 'EIN must be in format XX-XXXXXXX (2 digits, hyphen, 7 digits)' : '';
       setFieldErrors((prev) => ({ ...prev, ein: einError }));
     } else {
-      setForm((f) => ({ ...f, [name]: type === 'checkbox' ? checked : value }));
-      setFieldErrors((prev) => ({ ...prev, [name]: '' }));
+      setForm((f) => {
+        const next = { ...f, [name]: type === 'checkbox' ? checked : value };
+        if (name === 'projectStartDate' && next.projectEndDate) {
+          const maxEnd = getMaxEndDateFromStart(next.projectStartDate);
+          if (maxEnd && next.projectEndDate > maxEnd) next.projectEndDate = maxEnd;
+        }
+        return next;
+      });
+      setFieldErrors((prev) => {
+        const next = { ...prev, [name]: '' };
+        if (name === 'projectStartDate') next.projectEndDate = '';
+        return next;
+      });
     }
     setFileError('');
     setSubmitSummaryError('');
@@ -195,22 +220,35 @@ export default function ApplicationForm() {
     }
   };
 
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+  const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+
   const handleFile = (e) => {
-    const f = e.target.files?.[0];
-    if (!f) return;
-    const allowed = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
-    if (!allowed.includes(f.type)) {
-      setFileError('Only PDF, JPG, and PNG are allowed.');
-      setFile(null);
-      return;
-    }
-    if (f.size > 5 * 1024 * 1024) {
-      setFileError('File must be 5 MB or smaller.');
-      setFile(null);
-      return;
+    const list = e.target.files;
+    if (!list?.length) return;
+    const next = [];
+    for (let i = 0; i < list.length; i++) {
+      const f = list[i];
+      if (!ALLOWED_TYPES.includes(f.type)) {
+        setFileError('Only PDF, JPG, and PNG are allowed.');
+        e.target.value = '';
+        return;
+      }
+      if (f.size > MAX_FILE_SIZE) {
+        setFileError(`"${f.name}" is over 5 MB. Each file must be 5 MB or smaller.`);
+        e.target.value = '';
+        return;
+      }
+      next.push(f);
     }
     setFileError('');
-    setFile(f);
+    setFiles((prev) => [...prev, ...next]);
+    e.target.value = '';
+  };
+
+  const removeFile = (index) => {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
+    setFileError('');
   };
 
   const goNext = () => {
@@ -227,13 +265,13 @@ export default function ApplicationForm() {
   const goReview = () => {
     const err = validateSection2Fields(form);
     setFieldErrors(err);
-    if (!file) setFileError('Supporting document is required.');
-    if (Object.keys(err).length > 0 || !file) {
-      setSubmitSummaryError('Please fix the errors in Section 2 and attach a supporting document.');
+    if (!files.length) setFileError('At least one supporting document is required.');
+    if (Object.keys(err).length > 0 || !files.length) {
+      setSubmitSummaryError('Please fix the errors in Section 2 and attach at least one supporting document.');
       return;
     }
     setSubmitSummaryError('');
-    navigate('/apply/review', { state: { form, file } });
+    navigate('/apply/review', { state: { form, files } });
   };
 
   const eligibilityData = {
@@ -358,20 +396,23 @@ export default function ApplicationForm() {
                 <label htmlFor={id('annualOperatingBudget')}>
                   Annual Operating Budget <span className="required" aria-hidden="true">*</span>
                 </label>
-                <input
-                  id={id('annualOperatingBudget')}
-                  name="annualOperatingBudget"
-                  type="number"
-                  value={form.annualOperatingBudget}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  min={0}
-                  max={100000000}
-                  step={1000}
-                  aria-required="true"
-                  aria-invalid={!!fieldErrors.annualOperatingBudget}
-                  aria-describedby={fieldErrors.annualOperatingBudget ? `${id('annualOperatingBudget')}-error` : undefined}
-                />
+                <div className="input-with-prefix">
+                  <span className="input-prefix" aria-hidden="true">$</span>
+                  <input
+                    id={id('annualOperatingBudget')}
+                    name="annualOperatingBudget"
+                    type="number"
+                    value={form.annualOperatingBudget}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    min={0}
+                    max={100000000}
+                    step={1000}
+                    aria-required="true"
+                    aria-invalid={!!fieldErrors.annualOperatingBudget}
+                    aria-describedby={fieldErrors.annualOperatingBudget ? `${id('annualOperatingBudget')}-error` : undefined}
+                  />
+                </div>
                 {fieldErrors.annualOperatingBudget && (
                   <p id={`${id('annualOperatingBudget')}-error`} className="error" role="alert">
                     {fieldErrors.annualOperatingBudget}
@@ -639,20 +680,23 @@ export default function ApplicationForm() {
                 <label htmlFor={id('totalProjectCost')}>
                   Total Project Cost <span className="required" aria-hidden="true">*</span>
                 </label>
-                <input
-                  id={id('totalProjectCost')}
-                  name="totalProjectCost"
-                  type="number"
-                  value={form.totalProjectCost}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  min={100}
-                  max={10000000}
-                  step={100}
-                  aria-required="true"
-                  aria-invalid={!!fieldErrors.totalProjectCost}
-                  aria-describedby={fieldErrors.totalProjectCost ? `${id('totalProjectCost')}-error` : undefined}
-                />
+                <div className="input-with-prefix">
+                  <span className="input-prefix" aria-hidden="true">$</span>
+                  <input
+                    id={id('totalProjectCost')}
+                    name="totalProjectCost"
+                    type="number"
+                    value={form.totalProjectCost}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    min={100}
+                    max={10000000}
+                    step={100}
+                    aria-required="true"
+                    aria-invalid={!!fieldErrors.totalProjectCost}
+                    aria-describedby={fieldErrors.totalProjectCost ? `${id('totalProjectCost')}-error` : undefined}
+                  />
+                </div>
                 {fieldErrors.totalProjectCost && (
                   <p id={`${id('totalProjectCost')}-error`} className="error" role="alert">
                     {fieldErrors.totalProjectCost}
@@ -663,20 +707,23 @@ export default function ApplicationForm() {
                 <label htmlFor={id('amountRequested')}>
                   Amount Requested <span className="required" aria-hidden="true">*</span>
                 </label>
-                <input
-                  id={id('amountRequested')}
-                  name="amountRequested"
-                  type="number"
-                  value={form.amountRequested}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  min={100}
-                  max={50000}
-                  step={100}
-                  aria-required="true"
-                  aria-invalid={!!fieldErrors.amountRequested}
-                  aria-describedby={fieldErrors.amountRequested ? `${id('amountRequested')}-error` : undefined}
-                />
+                <div className="input-with-prefix">
+                  <span className="input-prefix" aria-hidden="true">$</span>
+                  <input
+                    id={id('amountRequested')}
+                    name="amountRequested"
+                    type="number"
+                    value={form.amountRequested}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    min={100}
+                    max={50000}
+                    step={100}
+                    aria-required="true"
+                    aria-invalid={!!fieldErrors.amountRequested}
+                    aria-describedby={fieldErrors.amountRequested ? `${id('amountRequested')}-error` : undefined}
+                  />
+                </div>
                 {fieldErrors.amountRequested && (
                   <p id={`${id('amountRequested')}-error`} className="error" role="alert">
                     {fieldErrors.amountRequested}
@@ -717,6 +764,7 @@ export default function ApplicationForm() {
                   onChange={handleChange}
                   onBlur={handleBlur}
                   min={form.projectStartDate || minStartDate}
+                  max={getMaxEndDateFromStart(form.projectStartDate)}
                   aria-required="true"
                   aria-invalid={!!fieldErrors.projectEndDate}
                   aria-describedby={fieldErrors.projectEndDate ? `${id('projectEndDate')}-error` : undefined}
@@ -727,7 +775,7 @@ export default function ApplicationForm() {
                   </p>
                 )}
               </div>
-              <div className="form-group">
+              <div className="form-group form-group-checkbox-row">
                 <label htmlFor={id('previouslyReceivedGrant')} className="form-group-checkbox-label">
                   <input
                     id={id('previouslyReceivedGrant')}
@@ -743,24 +791,39 @@ export default function ApplicationForm() {
               </div>
               <div className="form-group">
                 <label htmlFor={id('supportingDocument')}>
-                  Supporting Document (PDF, JPG, PNG; max 5 MB) <span className="required" aria-hidden="true">*</span>
+                  Supporting Documents (PDF, JPG, PNG; max 5 MB each) <span className="required" aria-hidden="true">*</span>
                 </label>
                 <input
                   id={id('supportingDocument')}
                   type="file"
                   accept=".pdf,.jpg,.jpeg,.png"
+                  multiple
                   onChange={handleFile}
                   aria-required="true"
                   aria-invalid={!!fileError}
-                  aria-describedby={fileError ? `${id('supportingDocument')}-error` : (file ? `${id('supportingDocument')}-ok` : undefined)}
+                  aria-describedby={fileError ? `${id('supportingDocument')}-error` : (files.length ? `${id('supportingDocument')}-ok` : undefined)}
                 />
-                {file && (
-                  <p id={`${id('supportingDocument')}-ok`} className="file-upload-name">
-                    {file.name}
-                    {file.size != null && (
-                      <span className="file-upload-size"> ({(file.size / 1024).toFixed(1)} KB)</span>
-                    )}
-                  </p>
+                {files.length > 0 && (
+                  <ul id={`${id('supportingDocument')}-ok`} className="file-upload-list" aria-label="Selected files">
+                    {files.map((f, i) => (
+                      <li key={`${f.name}-${i}`} className="file-upload-list-item">
+                        <span className="file-upload-name">
+                          {f.name}
+                          {f.size != null && (
+                            <span className="file-upload-size"> ({(f.size / 1024).toFixed(1)} KB)</span>
+                          )}
+                        </span>
+                        <button
+                          type="button"
+                          className="btn btn-neutral file-upload-remove"
+                          onClick={() => removeFile(i)}
+                          aria-label={`Remove ${f.name}`}
+                        >
+                          Remove
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
                 )}
                 {fileError && (
                   <p id={`${id('supportingDocument')}-error`} className="error" role="alert">

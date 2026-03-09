@@ -9,6 +9,12 @@ function formatCurrency(n) {
   return n != null && !Number.isNaN(Number(n)) ? `$${Number(n).toLocaleString()}` : '';
 }
 
+function formatDateOnly(str) {
+  if (!str || !String(str).trim()) return '—';
+  const d = new Date(String(str).trim());
+  return Number.isNaN(d.getTime()) ? str : d.toLocaleDateString();
+}
+
 export default function ReviewerApplicationDetail() {
   const { id } = useParams();
   const [app, setApp] = useState(null);
@@ -278,8 +284,8 @@ export default function ReviewerApplicationDetail() {
           <dt>Estimated Beneficiaries</dt><dd>{app.estimatedBeneficiaries}</dd>
           <dt>Total Project Cost</dt><dd>{formatCurrency(app.totalProjectCost)}</dd>
           <dt>Amount Requested</dt><dd>{formatCurrency(app.amountRequested)}</dd>
-          <dt>Project Start Date</dt><dd>{app.projectStartDate}</dd>
-          <dt>Project End Date</dt><dd>{app.projectEndDate}</dd>
+          <dt>Project Start Date</dt><dd>{formatDateOnly(app.projectStartDate)}</dd>
+          <dt>Project End Date</dt><dd>{formatDateOnly(app.projectEndDate)}</dd>
           <dt>Previously Received Grant</dt><dd>{app.previouslyReceivedGrant ? 'Yes' : 'No'}</dd>
         </dl>
       </section>

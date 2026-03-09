@@ -307,17 +307,23 @@ async function create(req, res, next) {
 
 async function uploadDocument(req, res, next) {
   try {
-    if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+    const files = req.files && req.files.length ? req.files : (req.file ? [req.file] : []);
+    if (files.length === 0) return res.status(400).json({ error: 'No file uploaded' });
     const { id } = req.params;
     const r = await pool.query('SELECT id, applicant_id FROM applications WHERE id = $1', [id]);
     if (r.rows.length === 0) return res.status(404).json({ error: 'Application not found' });
     if (r.rows[0].applicant_id !== req.user.id) return res.status(403).json({ error: 'Access denied' });
-    const storagePath = path.relative(process.cwd(), req.file.path).replace(/\\/g, '/');
-    await pool.query(
-      'INSERT INTO documents (application_id, file_name, file_type, file_size, storage_path) VALUES ($1, $2, $3, $4, $5)',
-      [id, req.file.originalname, req.file.mimetype, req.file.size, storagePath]
-    );
-    res.status(201).json({ message: 'Document uploaded', fileName: req.file.originalname });
+    for (const file of files) {
+      const storagePath = path.relative(process.cwd(), file.path).replace(/\\/g, '/');
+      await pool.query(
+        'INSERT INTO documents (application_id, file_name, file_type, file_size, storage_path) VALUES ($1, $2, $3, $4, $5)',
+        [id, file.originalname, file.mimetype, file.size, storagePath]
+      );
+    }
+    res.status(201).json({
+      message: files.length === 1 ? 'Document uploaded' : `${files.length} documents uploaded`,
+      count: files.length,
+    });
   } catch (err) {
     next(err);
   }

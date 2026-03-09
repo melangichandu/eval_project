@@ -13,6 +13,22 @@ function headers(includeAuth = true) {
   return h;
 }
 
+/** On 401 or token/expired error: logout and redirect to login. Returns true if handled. */
+function handleAuthError(res, data) {
+  if (res.status === 401) {
+    logout();
+    window.location.href = '/login';
+    return true;
+  }
+  const msg = (data && data.error) ? String(data.error).toLowerCase() : '';
+  if (msg.includes('expired') || (msg.includes('invalid') && msg.includes('token'))) {
+    logout();
+    window.location.href = '/login';
+    return true;
+  }
+  return false;
+}
+
 export async function register(body) {
   const res = await fetch(`${API_BASE}/api/auth/register`, {
     method: 'POST',
@@ -44,6 +60,7 @@ export async function login(email, password) {
 export async function getMyApplications() {
   const res = await fetch(`${API_BASE}/api/applications`, { headers: headers() });
   const data = await res.json().catch(() => ({}));
+  if (handleAuthError(res, data)) throw new Error('Session expired');
   if (!res.ok) throw new Error(data.error || 'Failed to load applications');
   return data;
 }
@@ -52,6 +69,7 @@ export async function getAllApplications(params = {}) {
   const q = new URLSearchParams(params).toString();
   const res = await fetch(`${API_BASE}/api/applications/all${q ? `?${q}` : ''}`, { headers: headers() });
   const data = await res.json().catch(() => ({}));
+  if (handleAuthError(res, data)) throw new Error('Session expired');
   if (!res.ok) {
     const message = res.status === 403
       ? 'You don\'t have permission to view all applications.'
@@ -64,6 +82,7 @@ export async function getAllApplications(params = {}) {
 export async function getApplicationsSummary() {
   const res = await fetch(`${API_BASE}/api/applications/summary`, { headers: headers() });
   const data = await res.json().catch(() => ({}));
+  if (handleAuthError(res, data)) throw new Error('Session expired');
   if (!res.ok) {
     const message = res.status === 403
       ? 'You don\'t have permission to view the summary.'
@@ -76,6 +95,7 @@ export async function getApplicationsSummary() {
 export async function getAdminSummary() {
   const res = await fetch(`${API_BASE}/api/admin/summary`, { headers: headers() });
   const data = await res.json().catch(() => ({}));
+  if (handleAuthError(res, data)) throw new Error('Session expired');
   if (!res.ok) {
     const message = res.status === 403
       ? 'Access denied. Administrator access required.'
@@ -88,6 +108,7 @@ export async function getAdminSummary() {
 export async function getApplication(id) {
   const res = await fetch(`${API_BASE}/api/applications/${id}`, { headers: headers() });
   const data = await res.json().catch(() => ({}));
+  if (handleAuthError(res, data)) throw new Error('Session expired');
   if (!res.ok) throw new Error(data.error || 'Failed to load application');
   return data;
 }
@@ -95,6 +116,11 @@ export async function getApplication(id) {
 export async function getDocumentBlob(applicationId, docId, { download = false } = {}) {
   const url = `${API_BASE}/api/applications/${applicationId}/documents/${docId}${download ? '?download=1' : ''}`;
   const res = await fetch(url, { headers: headers() });
+  if (res.status === 401) {
+    logout();
+    window.location.href = '/login';
+    throw new Error('Session expired');
+  }
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
     throw new Error(data.error || 'Failed to load document');
@@ -109,6 +135,7 @@ export async function submitApplication(body) {
     body: JSON.stringify(body),
   });
   const data = await res.json().catch(() => ({}));
+  if (handleAuthError(res, data)) throw new Error('Session expired');
   if (!res.ok) throw new Error(data.error || 'Failed to submit');
   return data;
 }
@@ -123,6 +150,24 @@ export async function uploadDocument(applicationId, file) {
     body: form,
   });
   const data = await res.json().catch(() => ({}));
+  if (handleAuthError(res, data)) throw new Error('Session expired');
+  if (!res.ok) throw new Error(data.error || 'Upload failed');
+  return data;
+}
+
+/** Upload multiple documents in one request (each file max 5 MB). */
+export async function uploadDocuments(applicationId, files) {
+  if (!files?.length) return { count: 0 };
+  const form = new FormData();
+  for (const file of files) form.append('document', file);
+  const token = getToken();
+  const res = await fetch(`${API_BASE}/api/applications/${applicationId}/documents`, {
+    method: 'POST',
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: form,
+  });
+  const data = await res.json().catch(() => ({}));
+  if (handleAuthError(res, data)) throw new Error('Session expired');
   if (!res.ok) throw new Error(data.error || 'Upload failed');
   return data;
 }
@@ -134,6 +179,7 @@ export async function updateStatus(applicationId, status, comments = '') {
     body: JSON.stringify({ status, comments }),
   });
   const data = await res.json().catch(() => ({}));
+  if (handleAuthError(res, data)) throw new Error('Session expired');
   if (!res.ok) throw new Error(data.error || 'Update failed');
   return data;
 }
@@ -144,6 +190,7 @@ export async function calculateAward(applicationId) {
     headers: headers(),
   });
   const data = await res.json().catch(() => ({}));
+  if (handleAuthError(res, data)) throw new Error('Session expired');
   if (!res.ok) throw new Error(data.error || 'Calculation failed');
   return data;
 }

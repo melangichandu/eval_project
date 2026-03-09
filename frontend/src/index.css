@@ -74,6 +74,9 @@ input, select, textarea {
 }
 
 .app-header-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
   color: white;
   text-decoration: none;
   font-weight: 700;
@@ -82,6 +85,22 @@ input, select, textarea {
 
 .app-header-brand:hover {
   text-decoration: underline;
+}
+
+.app-header-brand:hover .app-header-logo {
+  opacity: 0.9;
+}
+
+.app-header-logo {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: #7ED957;
+  line-height: 0;
+}
+
+.app-header-logo svg {
+  display: block;
+  vertical-align: middle;
 }
 
 .nav-links {
@@ -189,6 +208,24 @@ input, select, textarea {
   border-color: var(--danger);
 }
 
+.form-group .input-with-prefix {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.form-group .input-with-prefix .input-prefix {
+  position: absolute;
+  left: 12px;
+  pointer-events: none;
+  color: var(--neutral, #666);
+  font-weight: 500;
+}
+
+.form-group .input-with-prefix input {
+  padding-left: 28px;
+}
+
 .form-group .help {
   font-size: 0.875rem;
   color: var(--neutral);
@@ -209,6 +246,18 @@ input, select, textarea {
   cursor: pointer;
 }
 
+.form-group-checkbox-row {
+  width: fit-content;
+}
+
+.form-group-checkbox-row input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  min-height: 18px;
+  flex-shrink: 0;
+}
+
 .form-group .form-group-file-ok,
 .file-upload-name {
   font-size: 0.875rem;
@@ -218,6 +267,26 @@ input, select, textarea {
 
 .file-upload-name .file-upload-size {
   color: var(--neutral);
+}
+
+.file-upload-list {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.file-upload-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.file-upload-remove {
+  flex-shrink: 0;
+  font-size: 0.875rem;
+  padding: 4px 10px;
 }
 
 .card {
@@ -609,6 +678,15 @@ input, select, textarea {
   min-height: 1.5em;
 }
 
+.review-doc-list {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.review-doc-list li {
+  margin-top: 4px;
+}
+
 .review-doc-meta {
   color: var(--neutral);
   font-size: 0.875rem;
@@ -720,39 +798,140 @@ input, select, textarea {
 
 /* US-301: Admin summary – reuse summary-counts/summary-item; total awarded block */
 .admin-summary {
-  max-width: 900px;
+  max-width: 960px;
+  margin: 0 auto;
+  padding-top: 8px;
 }
 
 .admin-summary-heading {
   margin-top: 0;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--primary);
+  padding-bottom: 12px;
+  border-bottom: 3px solid var(--primary);
+}
+
+.admin-summary-heading:focus {
+  outline: none;
+}
+
+.admin-summary-heading:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 4px;
+  border-radius: var(--radius);
 }
 
 .admin-summary-note {
   color: var(--neutral);
-  margin-bottom: 24px;
+  margin-bottom: 28px;
   font-size: 0.9375rem;
+  line-height: 1.5;
 }
 
 .admin-summary-back {
-  margin-top: 32px;
+  margin-top: 40px;
   margin-bottom: 0;
+}
+
+.admin-summary-back-link {
+  font-weight: 500;
+}
+
+.summary-counts {
+  margin-bottom: 28px;
+}
+
+.summary-counts-inner {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+@media (max-width: 720px) {
+  .summary-counts-inner {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 400px) {
+  .summary-counts-inner {
+    grid-template-columns: 1fr;
+  }
+}
+
+.admin-summary .summary-item {
+  min-width: 0;
+  padding: 20px;
+  text-align: center;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.admin-summary .summary-item:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.admin-summary .summary-item-label {
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
+}
+
+.admin-summary .summary-item-value {
+  font-size: 1.75rem;
+}
+
+.summary-funds {
+  margin-bottom: 28px;
+}
+
+.summary-funds-heading {
+  margin: 0 0 12px 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--neutral);
+}
+
+.summary-funds-inner {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+@media (max-width: 600px) {
+  .summary-funds-inner {
+    grid-template-columns: 1fr;
+  }
+}
+
+.admin-summary .summary-fund-card .summary-item-value {
+  color: var(--primary);
 }
 
 .total-awarded-block {
   margin-bottom: 24px;
+  padding: 24px 28px;
+  background: linear-gradient(135deg, rgba(0, 48, 104, 0.04) 0%, rgba(0, 102, 204, 0.04) 100%);
+  border-left: 4px solid var(--primary);
 }
 
 .total-awarded-heading {
   margin-top: 0;
-  margin-bottom: 8px;
-  font-size: 1.25rem;
+  margin-bottom: 4px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--neutral);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .total-awarded-value {
   margin: 0;
-  font-size: 2rem;
+  font-size: 2.25rem;
   font-weight: 700;
+  color: var(--primary);
 }
 
 .reviewer-filters-row {

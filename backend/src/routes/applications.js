@@ -12,7 +12,7 @@ router.get('/summary', requireRole('REVIEWER'), applicationController.getSummary
 router.get('/:id/documents/:docId', applicationController.getDocument);
 router.get('/:id', applicationController.getOne);
 router.post('/', requireRole('APPLICANT'), applicationController.create);
-router.post('/:id/documents', requireRole('APPLICANT'), upload.single('document'), applicationController.uploadDocument);
+router.post('/:id/documents', requireRole('APPLICANT'), upload.array('document', 10), applicationController.uploadDocument);
 router.patch('/:id/status', requireRole('REVIEWER'), applicationController.updateStatus);
 router.post('/:id/award', requireRole('REVIEWER'), applicationController.calculateAward);
 
