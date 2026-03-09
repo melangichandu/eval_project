@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { register as apiRegister, setAuth } from '../services/api';
+import { register as apiRegister } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -42,6 +43,7 @@ function validateConfirmPassword(password, confirm) {
 
 export default function Register() {
   const navigate = useNavigate();
+  const { setAuth } = useAuth();
   const [form, setForm] = useState({
     fullName: '',
     email: '',

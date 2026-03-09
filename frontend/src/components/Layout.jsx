@@ -1,9 +1,8 @@
-import { Outlet, Link, useLocation } from 'react-router-dom';
-import { getStoredUser, logout } from '../services/api';
+import { Outlet, Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 export default function Layout() {
-  const location = useLocation();
-  const user = getStoredUser();
+  const { user, logout } = useAuth();
   const brandTo = user
     ? (user.role === 'ADMIN' ? '/admin' : user.role === 'REVIEWER' ? '/reviewer' : '/dashboard')
     : '/';
@@ -24,15 +23,6 @@ export default function Layout() {
           {user ? (
             <>
               <span className="nav-user-name">{user.fullName}</span>
-              {user.role === 'APPLICANT' && (
-                <Link to="/dashboard" className="btn btn-secondary btn-nav">Dashboard</Link>
-              )}
-              {user.role === 'REVIEWER' && (
-                <Link to="/reviewer" className="btn btn-secondary btn-nav">Reviewer Dashboard</Link>
-              )}
-              {user.role === 'ADMIN' && (
-                <Link to="/admin" className="btn btn-secondary btn-nav">Admin</Link>
-              )}
               <button
                 type="button"
                 className="btn btn-header-secondary btn-nav"

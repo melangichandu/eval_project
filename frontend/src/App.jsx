@@ -10,10 +10,11 @@ import ApplicationDetail from './pages/ApplicationDetail';
 import ReviewerDashboard from './pages/ReviewerDashboard';
 import ReviewerApplicationDetail from './pages/ReviewerApplicationDetail';
 import AdminSummary from './pages/AdminSummary';
-import { getStoredUser, isAuthenticated } from './services/api';
+import { useAuth } from './context/AuthContext';
+import { isAuthenticated } from './services/api';
 
 function Protected({ children, role }) {
-  const user = getStoredUser();
+  const { user } = useAuth();
   if (!isAuthenticated() || !user) return <Navigate to="/login" replace />;
   if (role && user.role !== role) {
     const to = user.role === 'ADMIN' ? '/admin' : user.role === 'REVIEWER' ? '/reviewer' : '/dashboard';
@@ -23,9 +24,9 @@ function Protected({ children, role }) {
 }
 
 function PublicOnly({ children }) {
-  if (isAuthenticated()) {
-    const user = getStoredUser();
-    const to = user?.role === 'ADMIN' ? '/admin' : user?.role === 'REVIEWER' ? '/reviewer' : '/dashboard';
+  const { user } = useAuth();
+  if (isAuthenticated() && user) {
+    const to = user.role === 'ADMIN' ? '/admin' : user.role === 'REVIEWER' ? '/reviewer' : '/dashboard';
     return <Navigate to={to} replace />;
   }
   return children;
